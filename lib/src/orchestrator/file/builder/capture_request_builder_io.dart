@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:camerawesome/src/orchestrator/file/builder/capture_request_builder.dart';
 import 'package:camerawesome/src/orchestrator/models/capture_modes.dart';
 import 'package:camerawesome/src/orchestrator/models/capture_request.dart';
+import 'package:camerawesome/src/orchestrator/models/picture_format.dart';
 import 'package:camerawesome/src/orchestrator/models/sensors.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -10,12 +11,14 @@ class CaptureRequestBuilderImpl extends BaseCaptureRequestBuilder {
   Future<String> newFile(
     CaptureMode captureMode, {
     Sensor? sensor,
+    PictureFormat pictureFormat = PictureFormat.jpeg,
   }) async {
     final Directory extDir = await getTemporaryDirectory();
     final testDir =
         await Directory('${extDir.path}/camerawesome').create(recursive: true);
-    final String fileExtension =
-        captureMode == CaptureMode.photo ? 'jpg' : 'mp4';
+    final String fileExtension = captureMode == CaptureMode.photo
+        ? pictureFormat.fileExtension
+        : 'mp4';
     String extension = "";
     if (sensor != null) {
       if (sensor.position != null) {
@@ -37,13 +40,21 @@ class CaptureRequestBuilderImpl extends BaseCaptureRequestBuilder {
   Future<CaptureRequest> build({
     required CaptureMode captureMode,
     required List<Sensor> sensors,
+    PictureFormat pictureFormat = PictureFormat.jpeg,
   }) async {
     if (sensors.length == 1) {
-      return SingleCaptureRequest(await newFile(captureMode), sensors.first);
+      return SingleCaptureRequest(
+        await newFile(captureMode, pictureFormat: pictureFormat),
+        sensors.first,
+      );
     } else {
       return MultipleCaptureRequest({
         for (var sensor in sensors)
-          sensor: await newFile(captureMode, sensor: sensor),
+          sensor: await newFile(
+            captureMode,
+            sensor: sensor,
+            pictureFormat: pictureFormat,
+          ),
       });
     }
   }

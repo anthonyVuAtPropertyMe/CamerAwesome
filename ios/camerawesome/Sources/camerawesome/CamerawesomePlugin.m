@@ -489,13 +489,54 @@ FlutterEventSink physicalButtonEventSink;
     completion(nil, [FlutterError errorWithCode:@"CAMERA_MUST_BE_INIT" message:@"init must be call before start" details:nil]);
     return;
   }
-  
+
   if (self.multiCamera != nil) {
     [self.multiCamera setExifPreferencesGPSLocation: exifPreferences.saveGPSLocation completion:completion];
   } else {
     [self.camera setExifPreferencesGPSLocation: exifPreferences.saveGPSLocation completion:completion];
   }
 }
+
+- (void)setPhotoFormatFormat:(PigeonPhotoFormat)format completion:(void(^)(NSNumber *_Nullable, FlutterError *_Nullable))completion {
+  if (self.camera == nil && self.multiCamera == nil) {
+    completion(nil, [FlutterError errorWithCode:@"CAMERA_MUST_BE_INIT" message:@"init must be call before start" details:nil]);
+    return;
+  }
+
+  if (self.multiCamera != nil) {
+    self.multiCamera.photoFormat = format;
+  }
+  if (self.camera != nil) {
+    self.camera.photoFormat = format;
+  }
+  completion(@YES, nil);
+}
+
+- (void)convertHeicToJpegPath:(NSString *)path completion:(void(^)(FlutterStandardTypedData *_Nullable, FlutterError *_Nullable))completion {
+  dispatch_async(_dispatchQueue, ^{
+    UIImage *image = [UIImage imageWithContentsOfFile:path];
+    if (image == nil) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        completion(nil, [FlutterError errorWithCode:@"HEIC_DECODE_ERROR" message:[NSString stringWithFormat:@"Could not load image at path: %@", path] details:nil]);
+      });
+      return;
+    }
+    // Quality 0.85 balances file size vs. fidelity for the filter pipeline;
+    // lossless (1.0) produces ~3× larger data for no benefit here.
+    NSData *jpegData = UIImageJPEGRepresentation(image, 0.85);
+    if (jpegData == nil) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        completion(nil, [FlutterError errorWithCode:@"HEIC_ENCODE_ERROR" message:@"Could not convert image to JPEG" details:nil]);
+      });
+      return;
+    }
+    FlutterStandardTypedData *result = [FlutterStandardTypedData typedDataWithBytes:jpegData];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      completion(result, nil);
+    });
+  });
+}
+
 
 - (void)setFlashModeMode:(nonnull NSString *)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
   if (mode == nil || mode.length <= 0) {

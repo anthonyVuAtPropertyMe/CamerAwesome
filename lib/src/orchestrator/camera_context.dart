@@ -45,6 +45,11 @@ class CameraContext {
   /// Preferences concerning Exif (photos metadata)
   ExifPreferences exifPreferences;
 
+  /// Container format used for photo capture. Mirrors [SaveConfig.pictureFormat].
+  /// Defaults to [PictureFormat.jpeg]; on Android and Web [PictureFormat.heic]
+  /// is silently treated as JPEG.
+  final PictureFormat pictureFormat;
+
   Stream<AwesomeFilter> get filter$ => filterController.stream;
 
   Stream<bool> get filterSelectorOpened$ => filterSelectorOpened.stream;
@@ -70,6 +75,7 @@ class CameraContext {
     required this.filterController,
     required this.enablePhysicalButton,
     required this.availableFilters,
+    required this.pictureFormat,
     this.onPermissionsResult,
   }) {
     var preparingState = PreparingCameraState(
@@ -107,6 +113,7 @@ class CameraContext {
               : null,
           exifPreferences: exifPreferences,
           availableFilters: availableFilters,
+          pictureFormat: saveConfig?.pictureFormat ?? PictureFormat.jpeg,
         );
 
   changeState(CameraState newState) async {

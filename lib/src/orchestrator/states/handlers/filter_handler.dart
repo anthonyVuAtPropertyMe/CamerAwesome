@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:camerawesome/pigeon.dart';
 import 'package:camerawesome/src/orchestrator/file/content/file_content.dart';
 import 'package:image/image.dart' as img;
 import 'package:camerawesome/camerawesome_plugin.dart';
@@ -12,14 +13,33 @@ class FilterHandler {
   Future<void> apply({
     required CaptureRequest captureRequest,
     required AwesomeFilter filter,
+    PictureFormat pictureFormat = PictureFormat.jpeg,
   }) async {
     if (Platform.isIOS && filter.id != AwesomeFilter.None.id) {
       photoFilterIsolate?.kill(priority: Isolate.immediate);
 
+      // Platform channels are unavailable inside a spawned Isolate, so
+      // HEIC→JPEG conversion must happen here on the main isolate first.
+      Map<String, Uint8List> preloadedBytes = {};
+      if (pictureFormat == PictureFormat.heic) {
+        final files = captureRequest.when(
+          single: (single) => [single.file],
+          multiple: (multiple) => multiple.fileBySensor.values.toList(),
+        );
+        final conversions = await Future.wait(
+          files.nonNulls.map((f) async {
+            final bytes = await CameraInterface().convertHeicToJpeg(f.path);
+            return MapEntry(f.path, bytes);
+          }),
+        );
+        preloadedBytes = Map.fromEntries(conversions);
+      }
+
       ReceivePort port = ReceivePort();
       photoFilterIsolate = await Isolate.spawn<PhotoFilterModel>(
         applyFilter,
-        PhotoFilterModel(captureRequest, filter.output),
+        PhotoFilterModel(captureRequest, filter.output,
+            pictureFormat: pictureFormat, preloadedBytes: preloadedBytes),
         onExit: port.sendPort,
       );
       await port.first;
@@ -34,15 +54,17 @@ Future<CaptureRequest> applyFilter(PhotoFilterModel model) async {
     single: (single) => [single.file],
     multiple: (multiple) => multiple.fileBySensor.values.toList(),
   );
-  FileContent fileContent = FileContent();
+  final fileContent = FileContent();
   for (final f in files) {
     // f is expected to not be null since the picture should have already been taken
-    final img.Image? image = img.decodeJpg((await fileContent.read(f!))!);
+    final Uint8List? rawBytes =
+        model.preloadedBytes[f!.path] ?? await fileContent.read(f);
+    if (rawBytes == null) {
+      throw Exception('Could not read image ${f.path}');
+    }
+    final img.Image? image = img.decodeImage(rawBytes);
     if (image == null) {
-      throw MediaCapture.failure(
-        exception: Exception("could not decode image ${f.path}"),
-        captureRequest: model.captureRequest,
-      );
+      throw Exception('Could not decode image ${f.path}');
     }
 
     final pixels = image.getBytes();
@@ -53,14 +75,10 @@ Future<CaptureRequest> applyFilter(PhotoFilterModel model) async {
       bytes: pixels.buffer,
     );
 
-    final List<int>? encodedImage = img.encodeNamedImage(f.path, out);
-    if (encodedImage == null) {
-      throw MediaCapture.failure(
-        exception: Exception("could not encode image ${f.path}"),
-        captureRequest: model.captureRequest,
-      );
-    }
-    await fileContent.write(f, Uint8List.fromList(encodedImage));
+    // The image package has no HEIC encoder. Filtered output is always JPEG,
+    // so a .heic capture file will contain JPEG bytes after this point.
+    final Uint8List encodedImage = img.encodeJpg(out);
+    await fileContent.write(f, encodedImage);
   }
   return model.captureRequest;
 }

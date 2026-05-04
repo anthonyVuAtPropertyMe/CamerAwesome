@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:camerawesome/camerawesome_plugin.dart';
@@ -8,10 +9,21 @@ import 'package:camerawesome/src/photofilters/filters/filters.dart';
 import 'package:rxdart/rxdart.dart';
 
 class PhotoFilterModel {
-  PhotoFilterModel(this.captureRequest, this.filter);
+  PhotoFilterModel(this.captureRequest, this.filter,
+      {this.pictureFormat = PictureFormat.jpeg,
+      this.preloadedBytes = const {}});
 
   final CaptureRequest captureRequest;
   final Filter filter;
+
+  /// Format of the captured file. Used by the filter pipeline to decide
+  /// whether native HEIC→JPEG pre-conversion is needed before the isolate runs.
+  final PictureFormat pictureFormat;
+
+  /// JPEG bytes pre-converted from HEIC on the main isolate, keyed by file
+  /// path. Platform channels are unavailable inside Isolate.spawn, so
+  /// HEIC→JPEG conversion must happen here first.
+  final Map<String, Uint8List> preloadedBytes;
 }
 
 /// Callback to get the CaptureRequest after the photo has been taken
@@ -86,6 +98,7 @@ class PhotoCameraState extends CameraState {
         await FilterHandler().apply(
           captureRequest: captureRequest,
           filter: filter,
+          pictureFormat: cameraContext.pictureFormat,
         );
 
         _mediaCapture = MediaCapture.success(captureRequest: captureRequest);

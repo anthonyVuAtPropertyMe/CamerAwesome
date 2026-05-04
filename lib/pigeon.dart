@@ -57,6 +57,14 @@ enum CupertinoCodecType {
   appleProRes422Proxy,
 }
 
+/// Photo capture container format. Defaults to [jpeg] on every platform.
+/// [heic] is honored on iOS 11+ (HEVC-capable devices); Android and Web
+/// silently fall back to [jpeg].
+enum PigeonPhotoFormat {
+  jpeg,
+  heic,
+}
+
 enum PigeonSensorType {
   /// A built-in wide-angle camera.
   ///
@@ -1551,6 +1559,60 @@ class CameraInterface {
       );
     } else {
       return (replyList[0] as bool?)!;
+    }
+  }
+
+  Future<bool> setPhotoFormat(PigeonPhotoFormat arg_format) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setPhotoFormat', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_format.index]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as bool?)!;
+    }
+  }
+
+  Future<Uint8List> convertHeicToJpeg(String arg_path) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.convertHeicToJpeg', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_path]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as Uint8List?)!;
     }
   }
 

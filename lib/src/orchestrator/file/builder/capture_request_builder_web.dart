@@ -1,6 +1,7 @@
 import 'package:camerawesome/src/orchestrator/file/builder/capture_request_builder.dart';
 import 'package:camerawesome/src/orchestrator/models/capture_modes.dart';
 import 'package:camerawesome/src/orchestrator/models/capture_request.dart';
+import 'package:camerawesome/src/orchestrator/models/picture_format.dart';
 import 'package:camerawesome/src/orchestrator/models/sensors.dart';
 
 class CaptureRequestBuilderImpl extends BaseCaptureRequestBuilder {
@@ -8,6 +9,7 @@ class CaptureRequestBuilderImpl extends BaseCaptureRequestBuilder {
   Future<CaptureRequest> build({
     required CaptureMode captureMode,
     required List<Sensor> sensors,
+    PictureFormat pictureFormat = PictureFormat.jpeg,
   }) async {
     if (sensors.length == 1) {
       return SingleCaptureRequest(null, sensors.first);

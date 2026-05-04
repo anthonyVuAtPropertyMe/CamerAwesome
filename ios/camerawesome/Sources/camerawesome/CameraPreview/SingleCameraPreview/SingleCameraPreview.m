@@ -50,7 +50,8 @@
   }
   
   _captureMode = captureMode;
-  
+  _photoFormat = PigeonPhotoFormatJpeg;
+
   // By default enable auto flash mode
   _flashMode = AVCaptureFlashModeOff;
   _torchMode = AVCaptureTorchModeOff;
@@ -503,6 +504,7 @@
                                                                          saveGPSLocation:_saveGPSLocation
                                                                        mirrorFrontCamera:_mirrorFrontCamera
                                                                              aspectRatio:_aspectRatio
+                                                                             photoFormat:_photoFormat
                                                                               completion:completion
                                                                                 callback:^{
     // If flash mode is always on, restore it back after photo is taken
@@ -511,18 +513,18 @@
       [self->_captureDevice setTorchMode:AVCaptureTorchModeOn];
       [self->_captureDevice unlockForConfiguration];
     }
-    
+
     completion(@(YES), nil);
   }];
-  
+
   // Create settings instance
   AVCapturePhotoSettings *settings = [AVCapturePhotoSettings photoSettings];
   [settings setFlashMode:_flashMode];
   [settings setHighResolutionPhotoEnabled:YES];
-  
+
   [_capturePhotoOutput capturePhotoWithSettings:settings
                                        delegate:cameraPicture];
-  
+
 }
 
 # pragma mark - Camera video

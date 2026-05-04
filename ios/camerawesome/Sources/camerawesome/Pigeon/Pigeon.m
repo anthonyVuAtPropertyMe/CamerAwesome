@@ -1292,6 +1292,44 @@ void CameraInterfaceSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<C
   {
     FlutterBasicMessageChannel *channel =
       [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setPhotoFormat"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setPhotoFormatFormat:completion:)], @"CameraInterface api (%@) doesn't respond to @selector(setPhotoFormatFormat:completion:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PigeonPhotoFormat arg_format = [GetNullableObjectAtIndex(args, 0) integerValue];
+        [api setPhotoFormatFormat:arg_format completion:^(NSNumber *_Nullable output, FlutterError *_Nullable error) {
+          callback(wrapResult(output, error));
+        }];
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.convertHeicToJpeg"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(convertHeicToJpegPath:completion:)], @"CameraInterface api (%@) doesn't respond to @selector(convertHeicToJpegPath:completion:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        NSString *arg_path = GetNullableObjectAtIndex(args, 0);
+        [api convertHeicToJpegPath:arg_path completion:^(FlutterStandardTypedData *_Nullable output, FlutterError *_Nullable error) {
+          callback(wrapResult(output, error));
+        }];
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
         initWithName:@"dev.flutter.pigeon.CameraInterface.startAnalysis"
         binaryMessenger:binaryMessenger
         codec:CameraInterfaceGetCodec()];

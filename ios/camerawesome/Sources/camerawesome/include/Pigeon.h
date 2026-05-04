@@ -59,6 +59,14 @@ typedef NS_ENUM(NSUInteger, CupertinoCodecType) {
   CupertinoCodecTypeAppleProRes422Proxy = 8,
 };
 
+/// Photo capture container format. Defaults to jpeg on every platform.
+/// `heic` is honored on iOS 11+ (HEVC-capable devices); Android and Web
+/// silently fall back to jpeg.
+typedef NS_ENUM(NSUInteger, PigeonPhotoFormat) {
+  PigeonPhotoFormatJpeg = 0,
+  PigeonPhotoFormatHeic = 1,
+};
+
 typedef NS_ENUM(NSUInteger, PigeonSensorType) {
   /// A built-in wide-angle camera.
   ///
@@ -316,6 +324,12 @@ NSObject<FlutterMessageCodec> *CameraInterfaceGetCodec(void);
 - (void)setAspectRatioAspectRatio:(NSString *)aspectRatio error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setupImageAnalysisStreamFormat:(NSString *)format width:(NSNumber *)width maxFramesPerSecond:(nullable NSNumber *)maxFramesPerSecond autoStart:(NSNumber *)autoStart error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setExifPreferencesExifPreferences:(ExifPreferences *)exifPreferences completion:(void (^)(NSNumber *_Nullable, FlutterError *_Nullable))completion;
+/// Select the container format used for subsequent photo captures.
+/// On Android and Web this is a no-op that always returns true.
+- (void)setPhotoFormatFormat:(PigeonPhotoFormat)format completion:(void (^)(NSNumber *_Nullable, FlutterError *_Nullable))completion;
+/// Decode the image at path (any UIImage-supported format, including HEIC) and
+/// return JPEG bytes. Used by the Dart filter pipeline which cannot decode HEIC.
+- (void)convertHeicToJpegPath:(NSString *)path completion:(void (^)(FlutterStandardTypedData *_Nullable, FlutterError *_Nullable))completion;
 - (void)startAnalysisWithError:(FlutterError *_Nullable *_Nonnull)error;
 - (void)stopAnalysisWithError:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setFilterMatrix:(NSArray<NSNumber *> *)matrix error:(FlutterError *_Nullable *_Nonnull)error;

@@ -80,6 +80,7 @@ Here's all native features that cameraAwesome provides to the flutter side.
 | 📹 Multi camera (🚧 BETA)                |   ✅    | ✅  |
 | 🔈 Enable/disable audio                  |   ✅    | ✅  |
 | 🎞 Take photos                            |   ✅    | ✅  |
+| 🖼 HEIC photo capture (iOS 11+)           |   ⛔️    | ✅  |
 | 🌆 Photo live filters                    |   ✅    | ✅  |
 | 🌤 Exposure level                         |   ✅    | ✅  |
 | 📡 Broadcast live image stream           |   ✅    | ✅  |
@@ -235,6 +236,27 @@ Here is an example:
 Check the
 [full documentation](https://docs.page/Apparence-io/camera_awesome/getting_started/awesome-ui)
 to learn more.
+
+### 🖼 Capturing HEIC photos (iOS 11+)
+
+By default, photos are captured as JPEG on every platform. On iOS 11+ you can
+opt into native HEIC (HEVC-encoded) capture by passing `pictureFormat:
+PictureFormat.heic` to `SaveConfig.photo()` or `SaveConfig.photoAndVideo()`.
+The default file path builder will then write `.heic` files instead of `.jpg`.
+
+```dart
+CameraAwesomeBuilder.awesome(
+  saveConfig: SaveConfig.photo(
+    pictureFormat: PictureFormat.heic,
+  ),
+)
+```
+
+HEIC capture is **iOS-only**: on Android and Web the option is silently
+ignored and capture continues to produce JPEG. On iOS devices that don't
+support HEVC encoding, the plugin gracefully falls back to JPEG. EXIF
+metadata (creation date, optional GPS), orientation, and aspect-ratio
+cropping are preserved in both formats.
 
 ---
 

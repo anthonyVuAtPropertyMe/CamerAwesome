@@ -23,6 +23,7 @@
     
     _aspectRatio = aspectRatioMode;
     _mirrorFrontCamera = mirrorFrontCamera;
+    _photoFormat = PigeonPhotoFormatJpeg;
     
     _motionController = [[MotionController alloc] init];
     _locationController = [[LocationController alloc] init];
@@ -346,7 +347,9 @@
   for (int i = 0; i < [sensors count]; i++) {
     PigeonSensor *sensor = [sensors objectAtIndex:i];
     NSString *path = [paths objectAtIndex:i];
-    
+
+    AVCapturePhotoOutput *photoOutput = self.devices[i].capturePhotoOutput;
+
     // TODO: take pictures for each sensors
     CameraPictureController *cameraPicture = [[CameraPictureController alloc] initWithPath:path
                                                                                orientation:_motionController.deviceOrientation
@@ -354,6 +357,7 @@
                                                                            saveGPSLocation:_saveGPSLocation
                                                                          mirrorFrontCamera:_mirrorFrontCamera
                                                                                aspectRatio:_aspectRatio
+                                                                               photoFormat:_photoFormat
                                                                                 completion:completion
                                                                                   callback:^{
       // If flash mode is always on, restore it back after photo is taken
@@ -362,17 +366,17 @@
         [self->_devices.firstObject.device setTorchMode:AVCaptureTorchModeOn];
         [self->_devices.firstObject.device unlockForConfiguration];
       }
-      
+
       completion(@(YES), nil);
     }];
-    
+
     // Create settings instance
     AVCapturePhotoSettings *settings = [AVCapturePhotoSettings photoSettings];
     [settings setHighResolutionPhotoEnabled:YES];
-    [self.devices[i].capturePhotoOutput setPhotoSettingsForSceneMonitoring:settings];
-    
-    [self.devices[i].capturePhotoOutput capturePhotoWithSettings:settings
-                                                        delegate:cameraPicture];
+    [photoOutput setPhotoSettingsForSceneMonitoring:settings];
+
+    [photoOutput capturePhotoWithSettings:settings
+                                 delegate:cameraPicture];
   }
 }
 

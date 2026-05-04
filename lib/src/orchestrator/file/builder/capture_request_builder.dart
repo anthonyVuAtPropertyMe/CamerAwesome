@@ -3,12 +3,14 @@ import 'package:camerawesome/src/orchestrator/file/builder/capture_request_build
     if (dart.library.html) 'capture_request_builder_web.dart';
 import 'package:camerawesome/src/orchestrator/models/capture_modes.dart';
 import 'package:camerawesome/src/orchestrator/models/capture_request.dart';
+import 'package:camerawesome/src/orchestrator/models/picture_format.dart';
 import 'package:camerawesome/src/orchestrator/models/sensors.dart';
 
 abstract class BaseCaptureRequestBuilder {
   Future<CaptureRequest> build({
     required CaptureMode captureMode,
     required List<Sensor> sensors,
+    PictureFormat pictureFormat,
   });
 }
 
@@ -20,7 +22,12 @@ class AwesomeCaptureRequestBuilder {
   Future<CaptureRequest> build({
     required CaptureMode captureMode,
     required List<Sensor> sensors,
+    PictureFormat pictureFormat = PictureFormat.jpeg,
   }) {
-    return _fileBuilder.build(captureMode: captureMode, sensors: sensors);
+    return _fileBuilder.build(
+      captureMode: captureMode,
+      sensors: sensors,
+      pictureFormat: pictureFormat,
+    );
   }
 }

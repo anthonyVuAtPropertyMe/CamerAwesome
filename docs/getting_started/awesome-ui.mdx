@@ -59,6 +59,8 @@ SaveConfig.photoAndVideo(
   exifPreferences: ExifPreferences(saveGPSLocation: true),
   // 6.
   mirrorFrontCamera: true,
+  // 7.
+  pictureFormat: PictureFormat.heic,
 )
 ```
 
@@ -70,6 +72,7 @@ Let's break it down:
 4. The video recording can be customized using `VideoOptions`. Note that each platform has its own settings.
 5. You can also enable or disable the GPS location in the EXIF data of your photos.
 6. Set if you want the front camera pictures & videos to be mirrored like in the preview.
+7. Container format for photo capture. Defaults to `PictureFormat.jpeg`. `PictureFormat.heic` enables native HEIC capture on iOS 11+ HEVC-capable devices; on Android, Web, and older iOS hardware it silently falls back to JPEG. The default file path builder switches the extension from `.jpg` to `.heic` accordingly.
 
 A `photoPathBuilder` could look like this:
 

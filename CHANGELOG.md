@@ -1,3 +1,12 @@
+# 2.6.0
+
+- Add `PictureFormat.heic` for native HEIC photo capture on iOS 11+. Pass
+  `pictureFormat: PictureFormat.heic` to `SaveConfig.photo()` or
+  `SaveConfig.photoAndVideo()` to opt in. Defaults remain JPEG on every
+  platform; Android and Web silently fall back to JPEG. iOS migrates to the
+  modern `AVCapturePhoto` delegate, preserving the existing crop, orientation,
+  and EXIF pipeline.
+
 # 2.5.0
 - Fix iOS camera zoom change crash (thanks @haf and @chaosue) 
 - Fix camera preview not accurate with the result photo

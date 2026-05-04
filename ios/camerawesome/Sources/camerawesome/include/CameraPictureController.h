@@ -27,6 +27,7 @@ typedef void(^OnPictureTaken)(void);
 @property(readonly, nonatomic) PigeonSensorPosition sensorPosition;
 @property(readonly, nonatomic) float aspectRatio;
 @property(readonly, nonatomic) AspectRatio aspectRatioType;
+@property(readonly, nonatomic) PigeonPhotoFormat photoFormat;
 @property NSInteger orientation;
 @property (nonatomic, copy) OnPictureTaken completionBlock;
 @property(readonly, nonatomic) CMMotionManager *motionManager;
@@ -38,6 +39,7 @@ typedef void(^OnPictureTaken)(void);
             saveGPSLocation:(bool)saveGPSLocation
           mirrorFrontCamera:(bool)mirrorFrontCamera
                 aspectRatio:(AspectRatio)aspectRatio
+                photoFormat:(PigeonPhotoFormat)photoFormat
                 completion:(nonnull void (^)(NSNumber * _Nullable, FlutterError * _Nullable))completion
                   callback:(OnPictureTaken)callback;
 @end

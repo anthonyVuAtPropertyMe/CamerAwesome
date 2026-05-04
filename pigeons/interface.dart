@@ -112,6 +112,14 @@ enum CupertinoCodecType {
   appleProRes422Proxy,
 }
 
+/// Photo capture container format. Defaults to [jpeg] on every platform.
+/// [heic] is honored on iOS 11+ (HEVC-capable devices); Android and Web
+/// silently fall back to [jpeg].
+enum PigeonPhotoFormat {
+  jpeg,
+  heic,
+}
+
 class CupertinoVideoOptions {
   /// Specify video file type, defaults to [AVFileTypeQuickTimeMovie].
   final CupertinoFileType? fileType;
@@ -423,6 +431,11 @@ abstract class CameraInterface {
 
   @async
   bool setExifPreferences(ExifPreferences exifPreferences);
+
+  /// Select the container format used for subsequent photo captures.
+  /// On Android and Web this is a no-op that always returns true.
+  @async
+  bool setPhotoFormat(PigeonPhotoFormat format);
 
   void startAnalysis();
 

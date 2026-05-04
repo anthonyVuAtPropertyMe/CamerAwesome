@@ -8,6 +8,7 @@
 #import "CameraPictureController.h"
 #import "ExifContainer.h"
 #import "NSData+Exif.h"
+#import <ImageIO/ImageIO.h>
 
 @implementation CameraPictureController {
   CameraPictureController *selfReference;
@@ -19,6 +20,7 @@
                  saveGPSLocation:(bool)saveGPSLocation
                mirrorFrontCamera:(bool)mirrorFrontCamera
                      aspectRatio:(AspectRatio)aspectRatio
+                     photoFormat:(PigeonPhotoFormat)photoFormat
                       completion:(nonnull void (^)(NSNumber * _Nullable, FlutterError * _Nullable))completion
                         callback:(OnPictureTaken)callback {
   self = [super init];
@@ -31,7 +33,8 @@
   _saveGPSLocation = saveGPSLocation;
   _aspectRatioType = aspectRatio;
   _mirrorFrontCamera = mirrorFrontCamera;
-  
+  _photoFormat = photoFormat;
+
   if (aspectRatio == Ratio4_3) {
     _aspectRatio = 4.0/3.0;
   } else if(aspectRatio == Ratio16_9) {
@@ -39,7 +42,7 @@
   } else {
     _aspectRatio = 1;
   }
-  
+
   selfReference = self;
   return self;
 }
@@ -47,10 +50,10 @@
 - (NSData *)writeMetadataIntoImageData:(NSData *)imageData metadata:(NSMutableDictionary *)metadata {
   // create an imagesourceref
   CGImageSourceRef source = CGImageSourceCreateWithData((__bridge CFDataRef) imageData, NULL);
-  
+
   // this is the type of image (e.g., public.jpeg)
   CFStringRef UTI = CGImageSourceGetType(source);
-  
+
   // create a new data object and write the new image into it
   NSMutableData *dest_data = [NSMutableData data];
   CGImageDestinationRef destination = CGImageDestinationCreateWithData((__bridge CFMutableDataRef)dest_data, UTI, 1, NULL);
@@ -78,39 +81,39 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
       bracketSettings:(AVCaptureBracketedStillImageSettings *)bracketSettings
                 error:(NSError *)error {
 #pragma clang diagnostic pop
-  
+
   selfReference = nil;
   if (error) {
     _completion(nil, [FlutterError errorWithCode:@"CAPTURE ERROR" message:error.description details:@""]);
     return;
   }
-  
+
   // Add exif data
   ExifContainer *container = [[ExifContainer alloc] init];
   [container addCreationDate:[NSDate date]];
-  
+
   // Save GPS location only if provided
   if (_saveGPSLocation) {
     CLLocationManager *locationManager = [CLLocationManager new];
     CLLocation *location = [locationManager location];
     [container addLocation:location];
   }
-  
+
   // we ignore this error because plugin can only be installed on iOS 11+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
   NSData *data = [AVCapturePhotoOutput JPEGPhotoDataRepresentationForJPEGSampleBuffer:photoSampleBuffer
                                                              previewPhotoSampleBuffer:previewPhotoSampleBuffer];
 #pragma clang diagnostic pop
-  
+
   UIImage *image = [UIImage imageWithCGImage:[UIImage imageWithData:data].CGImage
                                        scale:1.0
                                  orientation:[self getJpegOrientation]];
   float originalWidth = image.size.width;
   float originalHeight = image.size.height;
-  
+
   float originalImageAspectRatio = originalWidth / originalHeight;
-  
+
   float outputWidth = originalWidth;
   float outputHeight = originalHeight;
   if (originalImageAspectRatio != _aspectRatio) {
@@ -120,20 +123,68 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
       outputHeight = originalWidth / _aspectRatio;
     }
   }
-  
+
   UIImage *imageConverted = [self imageByCroppingImage:image toSize:CGSizeMake(outputWidth, outputHeight)];
-  
+
   image = [UIImage imageWithCGImage:[imageConverted CGImage] scale:0.0 orientation:[self getJpegOrientation]];
 
-  NSData *imageWithExif = [UIImageJPEGRepresentation(image, 1.0) addExif:container];
-  
-  bool success = [imageWithExif writeToFile:_path atomically:YES];
+  NSData *outputData;
+  if (_photoFormat == PigeonPhotoFormatHeic) {
+    // Transcode the cropped/oriented JPEG pixels to HEIC. Capturing JPEG and
+    // re-encoding preserves the existing orientation pipeline unchanged.
+    outputData = [self heicRepresentationForImage:image exifContainer:container];
+    if (outputData == nil) {
+      // Device doesn't support HEIC encoding — fall back to JPEG silently.
+      outputData = [UIImageJPEGRepresentation(image, 1.0) addExif:container];
+    }
+  } else {
+    outputData = [UIImageJPEGRepresentation(image, 1.0) addExif:container];
+  }
+
+  bool success = [outputData writeToFile:_path atomically:YES];
   if (!success) {
     _completion(nil, [FlutterError errorWithCode:@"IOError" message:@"unable to write file" details:nil]);
     return;
   }
   _completionBlock();
-  
+
+}
+
+// Encode a UIImage as HEIC preserving EXIF metadata from ExifContainer.
+// Returns nil on devices where the HEIC encoder is unavailable (callers fall back to JPEG).
+- (NSData *)heicRepresentationForImage:(UIImage *)image
+                         exifContainer:(ExifContainer *)container {
+  NSMutableData *heicData = [NSMutableData data];
+  CGImageDestinationRef destination = CGImageDestinationCreateWithData(
+      (__bridge CFMutableDataRef)heicData, CFSTR("public.heic"), 1, NULL);
+  if (!destination) {
+    return nil;
+  }
+  // CGImageDestination works on raw CGImage pixels (no orientation baked in),
+  // so orientation must be embedded explicitly via kCGImagePropertyOrientation.
+  // UIImageJPEGRepresentation does this automatically; we must do it ourselves for HEIC.
+  NSMutableDictionary *metadata = [[container exifData] mutableCopy] ?: [NSMutableDictionary dictionary];
+  CGImagePropertyOrientation cgOrientation = [self cgOrientationFromUIOrientation:image.imageOrientation];
+  metadata[(__bridge NSString *)kCGImagePropertyOrientation] = @(cgOrientation);
+  CGImageDestinationAddImage(destination, image.CGImage, (__bridge CFDictionaryRef)metadata);
+  BOOL ok = CGImageDestinationFinalize(destination);
+  CFRelease(destination);
+  return ok ? heicData : nil;
+}
+
+// Maps UIImageOrientation → CGImagePropertyOrientation (EXIF orientation integers).
+- (CGImagePropertyOrientation)cgOrientationFromUIOrientation:(UIImageOrientation)uiOrientation {
+  switch (uiOrientation) {
+    case UIImageOrientationUp:            return kCGImagePropertyOrientationUp;
+    case UIImageOrientationDown:          return kCGImagePropertyOrientationDown;
+    case UIImageOrientationLeft:          return kCGImagePropertyOrientationLeft;
+    case UIImageOrientationRight:         return kCGImagePropertyOrientationRight;
+    case UIImageOrientationUpMirrored:    return kCGImagePropertyOrientationUpMirrored;
+    case UIImageOrientationDownMirrored:  return kCGImagePropertyOrientationDownMirrored;
+    case UIImageOrientationLeftMirrored:  return kCGImagePropertyOrientationLeftMirrored;
+    case UIImageOrientationRightMirrored: return kCGImagePropertyOrientationRightMirrored;
+    default:                              return kCGImagePropertyOrientationUp;
+  }
 }
 
 - (UIImage *)imageByCroppingImage:(UIImage *)image toSize:(CGSize)size {
@@ -154,13 +205,13 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
     }
     newCropWidth = (newCropHeight * size.width)/size.height;
   }
-  
+
   double imageHeightDivided = image.size.height/2.0;
   double imageWidthDivided = image.size.width/2.0;
-  
+
   double x = imageWidthDivided - newCropWidth/2.0;
   double y = imageHeightDivided - newCropHeight/2.0;
-  
+
   CGRect cropRect;
   if (UIDeviceOrientationIsLandscape(_orientation)) {
     cropRect = CGRectMake(x, y, newCropWidth, newCropHeight);
@@ -176,16 +227,16 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
       }
     }
   }
-  
+
   CGImageRef imageRef = CGImageCreateWithImageInRect([image CGImage], cropRect);
-  
+
   UIImage *cropped = [UIImage imageWithCGImage:imageRef];
   CGImageRelease(imageRef);
-  
+
   return cropped;
 }
 
-// Helper #1: map a “known” UIDeviceOrientation → UIImageOrientation
+// Helper #1: map a "known" UIDeviceOrientation → UIImageOrientation
 - (UIImageOrientation)imageOrientationFromDeviceOrientation:(UIDeviceOrientation)devOrient {
     switch (devOrient) {
         case UIDeviceOrientationPortrait:

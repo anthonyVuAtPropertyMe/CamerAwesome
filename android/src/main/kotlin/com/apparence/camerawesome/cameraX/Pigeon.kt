@@ -126,6 +126,22 @@ enum class CupertinoCodecType(val raw: Int) {
   }
 }
 
+/**
+ * Photo capture container format. Defaults to [JPEG] on every platform.
+ * [HEIC] is honored on iOS 11+ (HEVC-capable devices); Android and Web
+ * silently fall back to [JPEG].
+ */
+enum class PigeonPhotoFormat(val raw: Int) {
+  JPEG(0),
+  HEIC(1);
+
+  companion object {
+    fun ofRaw(raw: Int): PigeonPhotoFormat? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 enum class PigeonSensorType(val raw: Int) {
   /**
    * A built-in wide-angle camera.
@@ -802,6 +818,12 @@ interface CameraInterface {
   fun setAspectRatio(aspectRatio: String)
   fun setupImageAnalysisStream(format: String, width: Long, maxFramesPerSecond: Double?, autoStart: Boolean)
   fun setExifPreferences(exifPreferences: ExifPreferences, callback: (Result<Boolean>) -> Unit)
+  /**
+   * Select the container format used for subsequent photo captures.
+   * On Android and Web this is a no-op that always returns true.
+   */
+  fun setPhotoFormat(format: PigeonPhotoFormat, callback: (Result<Boolean>) -> Unit)
+  fun convertHeicToJpeg(path: String, callback: (Result<ByteArray>) -> Unit)
   fun startAnalysis()
   fun stopAnalysis()
   fun setFilter(matrix: List<Double>)
@@ -1417,6 +1439,46 @@ interface CameraInterface {
             val args = message as List<Any?>
             val exifPreferencesArg = args[0] as ExifPreferences
             api.setExifPreferences(exifPreferencesArg) { result: Result<Boolean> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setPhotoFormat", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val formatArg = PigeonPhotoFormat.ofRaw(args[0] as Int)!!
+            api.setPhotoFormat(formatArg) { result: Result<Boolean> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.convertHeicToJpeg", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val pathArg = args[0] as String
+            api.convertHeicToJpeg(pathArg) { result: Result<ByteArray> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

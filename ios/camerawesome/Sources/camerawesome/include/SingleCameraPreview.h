@@ -57,6 +57,7 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
 @property(readonly, nonatomic) CameraPreviewTexture* previewTexture;
 @property(readonly, nonatomic) bool saveGPSLocation;
 @property(readonly, nonatomic) bool mirrorFrontCamera;
+@property(nonatomic, assign) PigeonPhotoFormat photoFormat;
 @property(readonly, nonatomic) CGSize currentPreviewSize;
 @property(readonly, nonatomic) ImageStreamController *imageStreamController;
 @property(readonly, nonatomic) MotionController *motionController;

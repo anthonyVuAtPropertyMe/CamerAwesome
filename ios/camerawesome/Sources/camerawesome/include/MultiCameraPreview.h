@@ -40,6 +40,7 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
 @property(readonly, nonatomic) PhysicalButtonController *physicalButtonController;
 @property(readonly, nonatomic) bool saveGPSLocation;
 @property(readonly, nonatomic) bool mirrorFrontCamera;
+@property(nonatomic, assign) PigeonPhotoFormat photoFormat;
 @property(nonatomic, nonatomic) NSMutableArray<CameraPreviewTexture *> *textures;
 @property(nonatomic, copy) void (^onPreviewFrameAvailable)(NSNumber * _Nullable);
 

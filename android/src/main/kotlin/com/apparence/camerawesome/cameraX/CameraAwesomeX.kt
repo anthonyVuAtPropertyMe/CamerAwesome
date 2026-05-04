@@ -243,6 +243,21 @@ class CameraAwesomeX : CameraInterface, FlutterPlugin, ActivityAware {
         colorMatrix = matrix
     }
 
+    // No-op on Android: HEIC capture is not yet supported by this plugin's
+    // CameraX path, so the platform always produces JPEG regardless of the
+    // requested PigeonPhotoFormat. Returning `true` keeps the host API
+    // contract simple and matches the documented iOS-only behavior.
+    override fun setPhotoFormat(
+        format: PigeonPhotoFormat, callback: (Result<Boolean>) -> Unit
+    ) {
+        callback(Result.success(true))
+    }
+
+    // Android never captures HEIC, so this conversion path is never reached.
+    override fun convertHeicToJpeg(path: String, callback: (Result<ByteArray>) -> Unit) {
+        callback(Result.success(ByteArray(0)))
+    }
+
     override fun isVideoRecordingAndImageAnalysisSupported(
         sensor: PigeonSensorPosition, callback: (Result<Boolean>) -> Unit
     ) {

@@ -40,22 +40,29 @@ class MediaCapture {
         videoState = VideoState.error;
 
   /// Returns true if the capture has either a mimeType with "image" inside or
-  /// if the file path ends with "jpg".
-  /// On Web, returns always true
+  /// if the file path ends with a still-image extension (`jpg` or `heic`).
+  /// On Web, returns always true.
   bool get isPicture => kIsWeb
       ? true
       : captureRequest.when(
           single: (singleCaptureRequest) =>
-              singleCaptureRequest.file?.path.endsWith("jpg") == true ||
+              _isPicturePath(singleCaptureRequest.file?.path) ||
               singleCaptureRequest.file?.mimeType?.contains("image") == true,
           multiple: (multipleCaptureRequest) =>
-              multipleCaptureRequest.fileBySensor.values.first?.path
-                      .endsWith("jpg") ==
-                  true ||
+              _isPicturePath(
+                  multipleCaptureRequest.fileBySensor.values.first?.path) ||
               multipleCaptureRequest.fileBySensor.values.first?.mimeType
                       ?.contains("image") ==
                   true,
         );
+
+  static bool _isPicturePath(String? path) {
+    if (path == null) return false;
+    final normalized = path.trim().toLowerCase().split('?').first.split('#').first;
+    return normalized.endsWith('.jpg') ||
+        normalized.endsWith('.jpeg') ||
+        normalized.endsWith('.heic');
+  }
 
   bool get isVideo => !isPicture;
 

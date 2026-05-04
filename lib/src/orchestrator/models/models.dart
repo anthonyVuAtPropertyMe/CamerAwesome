@@ -4,6 +4,7 @@ export 'camera_orientations.dart';
 export 'capture_modes.dart';
 export 'capture_request.dart';
 export 'media_capture.dart';
+export 'picture_format.dart';
 export 'sensor_data.dart';
 export 'sensors.dart';
 export 'save_config.dart';

@@ -16,6 +16,11 @@ class SaveConfig {
   /// Choose if you want to persist user location in image metadata or not
   final ExifPreferences? exifPreferences;
 
+  /// Container format used for photo capture. Defaults to [PictureFormat.jpeg].
+  /// [PictureFormat.heic] is honored on iOS 11+ (HEVC-capable devices); on
+  /// Android and Web, capture continues to produce JPEG regardless.
+  final PictureFormat pictureFormat;
+
   SaveConfig._({
     this.photoPathBuilder,
     this.videoPathBuilder,
@@ -24,6 +29,7 @@ class SaveConfig {
     this.videoOptions,
     this.exifPreferences,
     required this.mirrorFrontCamera,
+    required this.pictureFormat,
   });
 
   /// You only want to take photos
@@ -31,14 +37,19 @@ class SaveConfig {
     CaptureRequestBuilder? pathBuilder,
     ExifPreferences? exifPreferences,
     bool mirrorFrontCamera = false,
+    PictureFormat pictureFormat = PictureFormat.jpeg,
   }) : this._(
           photoPathBuilder: pathBuilder ??
-              (sensors) => AwesomeCaptureRequestBuilder()
-                  .build(captureMode: CaptureMode.photo, sensors: sensors),
+              (sensors) => AwesomeCaptureRequestBuilder().build(
+                    captureMode: CaptureMode.photo,
+                    sensors: sensors,
+                    pictureFormat: pictureFormat,
+                  ),
           captureModes: [CaptureMode.photo],
           initialCaptureMode: CaptureMode.photo,
           exifPreferences: exifPreferences,
           mirrorFrontCamera: mirrorFrontCamera,
+          pictureFormat: pictureFormat,
         );
 
   /// You only want to take videos
@@ -54,6 +65,7 @@ class SaveConfig {
           initialCaptureMode: CaptureMode.video,
           videoOptions: videoOptions,
           mirrorFrontCamera: mirrorFrontCamera,
+          pictureFormat: PictureFormat.jpeg,
         );
 
   /// You want to be able to take both photos and videos
@@ -64,10 +76,14 @@ class SaveConfig {
     VideoOptions? videoOptions,
     ExifPreferences? exifPreferences,
     bool mirrorFrontCamera = false,
+    PictureFormat pictureFormat = PictureFormat.jpeg,
   }) : this._(
           photoPathBuilder: photoPathBuilder ??
-              (sensors) => AwesomeCaptureRequestBuilder()
-                  .build(captureMode: CaptureMode.photo, sensors: sensors),
+              (sensors) => AwesomeCaptureRequestBuilder().build(
+                    captureMode: CaptureMode.photo,
+                    sensors: sensors,
+                    pictureFormat: pictureFormat,
+                  ),
           videoPathBuilder: videoPathBuilder ??
               (sensors) => AwesomeCaptureRequestBuilder()
                   .build(captureMode: CaptureMode.video, sensors: sensors),
@@ -76,5 +92,6 @@ class SaveConfig {
           videoOptions: videoOptions,
           exifPreferences: exifPreferences,
           mirrorFrontCamera: mirrorFrontCamera,
+          pictureFormat: pictureFormat,
         );
 }

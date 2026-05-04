@@ -28,6 +28,9 @@ class CameraPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pictureFormat =
+        Platform.isIOS ? PictureFormat.heic : PictureFormat.jpeg;
+    final ext = pictureFormat.fileExtension;
     return Scaffold(
       body: Container(
         color: Colors.white,
@@ -77,7 +80,7 @@ class CameraPage extends StatelessWidget {
               ).create(recursive: true);
               if (sensors.length == 1) {
                 final String filePath =
-                    '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+                    '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.$ext';
                 return SingleCaptureRequest(filePath, sensors.first);
               }
               // Separate pictures taken with front and back camera
@@ -85,10 +88,11 @@ class CameraPage extends StatelessWidget {
                 {
                   for (final sensor in sensors)
                     sensor:
-                        '${testDir.path}/${sensor.position == SensorPosition.front ? 'front_' : "back_"}${DateTime.now().millisecondsSinceEpoch}.jpg',
+                        '${testDir.path}/${sensor.position == SensorPosition.front ? 'front_' : "back_"}${DateTime.now().millisecondsSinceEpoch}.$ext',
                 },
               );
             },
+            pictureFormat: pictureFormat,
             videoOptions: VideoOptions(
               enableAudio: true,
               ios: CupertinoVideoOptions(

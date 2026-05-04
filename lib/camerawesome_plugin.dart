@@ -185,23 +185,29 @@ class CamerawesomePlugin {
     required ExifPreferences exifPreferences,
     required VideoOptions? videoOptions,
     required bool mirrorFrontCamera,
+    PictureFormat pictureFormat = PictureFormat.jpeg,
   }) async {
-    return CameraInterface()
-        .setupCamera(
-          sensorConfig.sensors.map((e) {
-            return e.toPigeon();
-          }).toList(),
-          sensorConfig.aspectRatio.name.toUpperCase(),
-          sensorConfig.zoom,
-          mirrorFrontCamera,
-          enablePhysicalButton,
-          sensorConfig.flashMode.name.toUpperCase(),
-          captureMode.name.toUpperCase(),
-          enableImageStream,
-          exifPreferences,
-          videoOptions,
-        )
-        .then((value) => true);
+    await CameraInterface().setupCamera(
+      sensorConfig.sensors.map((e) {
+        return e.toPigeon();
+      }).toList(),
+      sensorConfig.aspectRatio.name.toUpperCase(),
+      sensorConfig.zoom,
+      mirrorFrontCamera,
+      enablePhysicalButton,
+      sensorConfig.flashMode.name.toUpperCase(),
+      captureMode.name.toUpperCase(),
+      enableImageStream,
+      exifPreferences,
+      videoOptions,
+    );
+    // The native camera defaults to JPEG; only push the format when a
+    // non-default is requested. If the native default ever changes this
+    // guard must be revisited.
+    if (pictureFormat != PictureFormat.jpeg) {
+      await CamerawesomePlugin.setPhotoFormat(pictureFormat);
+    }
+    return true;
   }
 
   static Future<List<Size>> getSizes() async {
@@ -370,6 +376,15 @@ class CamerawesomePlugin {
   /// - Permission ACCESS_FINE_LOCATION has not been granted
   static Future<bool> setExifPreferences(ExifPreferences savedExifData) {
     return CameraInterface().setExifPreferences(savedExifData);
+  }
+
+  /// Select the container format for subsequent photo captures.
+  ///
+  /// On iOS 11+ HEVC-capable devices, [PictureFormat.heic] produces genuine
+  /// HEIC/HEIF files. On Android and Web this is a no-op that returns true —
+  /// capture continues to produce JPEG.
+  static Future<bool> setPhotoFormat(PictureFormat format) {
+    return CameraInterface().setPhotoFormat(format.toPigeon());
   }
 
   /// set brightness manually with range [0,1]
