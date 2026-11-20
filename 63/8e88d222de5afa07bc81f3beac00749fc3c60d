@@ -1,0 +1,45 @@
+ios/camerawesome/Sources/camerawesome/Controllers/Picture/CameraPictureController.m
+  s_094855c63a726b::t_aa15c7493e5374 11
+  s_094855c63a726b::t_54fb3110a8179c 178-179,183,185-202
+  s_094855c63a726b::t_e177bc2392401f 83,86-87,91-135
+  s_094855c63a726b::t_c542b5dd101dca 136-140,151,203-206
+ios/camerawesome/Sources/camerawesome/include/PME44386Spike.h
+  s_094855c63a726b::t_91b0928e8dd963 1-56
+ios/camerawesome/Sources/camerawesome/include/PME44386FastPhotoDelegate.h
+  s_094855c63a726b::t_ddf1e37f71b7c9 1-25
+ios/camerawesome/Sources/camerawesome/Spike/PME44386Spike.m
+  s_094855c63a726b::t_4c44e380ed7f9e 1-159
+ios/camerawesome/Sources/camerawesome/Spike/PME44386FastPhotoDelegate.m
+  s_094855c63a726b::t_c1dbabff64604f 1-131
+  s_094855c63a726b::t_e6e7151a9bad6b 132
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/Pme44386Spike.kt
+  s_094855c63a726b::t_c48be8f1577bbc 1-154
+ios/camerawesome/Sources/camerawesome/include/CameraPictureController.h
+  s_094855c63a726b::t_990ce61aa1d4d3 47-59
+  s_094855c63a726b::t_f9a1f58253ec94 34-37
+  s_094855c63a726b::t_470a164ba728c8 60-61
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/CameraAwesomeX.kt
+  s_094855c63a726b::t_33b3a74ccc1343 355,362,367,369,372-381,387,400-403,405,450,821-824,864-870
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/CameraXState.kt
+  s_094855c63a726b::t_da6bf721cdda2f 147,222,224-228,277,354
+ios/camerawesome/Sources/camerawesome/CameraPreview/SingleCameraPreview/SingleCameraPreview.m
+  s_094855c63a726b::t_7cdf18fa23e9f3 9-10,166-167,285-288,507,527-535,537-539,542-550,552
+ios/camerawesome/Sources/camerawesome/CamerawesomePlugin.m
+  s_094855c63a726b::t_d0f8b68a900e49 11,64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "638e88d222de5afa07bc81f3beac00749fc3c60d",
+  "prompts": {},
+  "sessions": {
+    "s_094855c63a726b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "510d3081-48a1-4fcc-9268-775c1ece3a25",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Anthony Vu <anthonyvu@propertyme.com>"
+    }
+  }
+}
