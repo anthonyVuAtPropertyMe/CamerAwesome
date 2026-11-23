@@ -520,6 +520,11 @@
   [settings setFlashMode:_flashMode];
   [settings setHighResolutionPhotoEnabled:YES];
   
+  if (_cameraSensorPosition == PigeonSensorPositionBack) {
+    [cameraPicture applyOrientationToPhotoConnectionOf:_capturePhotoOutput];
+    cameraPicture.writesPhotoDirectly = YES;
+  }
+
   [_capturePhotoOutput capturePhotoWithSettings:settings
                                        delegate:cameraPicture];
   

@@ -19,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef void(^OnPictureTaken)(void);
 
-@interface CameraPictureController : NSObject <AVCapturePhotoCaptureDelegate>
+@interface CameraPictureController : NSObject <AVCapturePhotoCaptureDelegate, AVCapturePhotoFileDataRepresentationCustomizer>
 @property(readonly, nonatomic) NSString *path;
 @property(readonly, nonatomic) bool saveGPSLocation;
 @property(readonly, nonatomic) bool mirrorFrontCamera;
@@ -28,6 +28,10 @@ typedef void(^OnPictureTaken)(void);
 @property(readonly, nonatomic) float aspectRatio;
 @property(readonly, nonatomic) AspectRatio aspectRatioType;
 @property NSInteger orientation;
+/// Set by a preview that called `applyOrientationToPhotoConnectionOf:` before capturing: a photo with
+/// the requested aspect ratio is then written as the camera produced it, without decode, crop and
+/// re-encode.
+@property BOOL writesPhotoDirectly;
 @property (nonatomic, copy) OnPictureTaken completionBlock;
 @property(readonly, nonatomic) CMMotionManager *motionManager;
 @property(readonly, nonatomic) AVCaptureDevicePosition cameraPosition;
@@ -40,6 +44,10 @@ typedef void(^OnPictureTaken)(void);
                 aspectRatio:(AspectRatio)aspectRatio
                 completion:(nonnull void (^)(NSNumber * _Nullable, FlutterError * _Nullable))completion
                   callback:(OnPictureTaken)callback;
+
+/// Sets the photo output's connection orientation from the device orientation, so the camera
+/// writes the EXIF Orientation the crop path would. Call before `capturePhotoWithSettings:delegate:`.
+- (void)applyOrientationToPhotoConnectionOf:(AVCapturePhotoOutput *)output;
 @end
 
 NS_ASSUME_NONNULL_END
