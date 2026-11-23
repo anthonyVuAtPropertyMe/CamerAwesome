@@ -106,22 +106,7 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
   UIImage *image = [UIImage imageWithCGImage:[UIImage imageWithData:data].CGImage
                                        scale:1.0
                                  orientation:[self getJpegOrientation]];
-  float originalWidth = image.size.width;
-  float originalHeight = image.size.height;
-  
-  float originalImageAspectRatio = originalWidth / originalHeight;
-  
-  float outputWidth = originalWidth;
-  float outputHeight = originalHeight;
-  if (originalImageAspectRatio != _aspectRatio) {
-    if (originalImageAspectRatio > _aspectRatio) {
-      outputWidth = originalHeight * _aspectRatio;
-    } else if (originalImageAspectRatio < _aspectRatio) {
-      outputHeight = originalWidth / _aspectRatio;
-    }
-  }
-  
-  UIImage *imageConverted = [self imageByCroppingImage:image toSize:CGSizeMake(outputWidth, outputHeight)];
+  UIImage *imageConverted = [self imageByCroppingImage:image];
   
   image = [UIImage imageWithCGImage:[imageConverted CGImage] scale:0.0 orientation:[self getJpegOrientation]];
 
@@ -136,52 +121,27 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
   
 }
 
-- (UIImage *)imageByCroppingImage:(UIImage *)image toSize:(CGSize)size {
-  double newCropWidth, newCropHeight;
+/// Crops the sensor's pixels, centred, to the requested aspect ratio. The pixels are always
+/// landscape; the image orientation turns the result upright later, so one rule serves every
+/// device orientation and any source ratio (16:9 video format or 4:3 photo format).
+- (UIImage *)imageByCroppingImage:(UIImage *)image {
+  CGImageRef source = [image CGImage];
+  double width = CGImageGetWidth(source);
+  double height = CGImageGetHeight(source);
+  double cropWidth = width;
+  double cropHeight = height;
+  if (width / height > _aspectRatio) {
+    cropWidth = height * _aspectRatio;
+  } else {
+    cropHeight = width / _aspectRatio;
+  }
+  CGRect cropRect = CGRectMake(round((width - cropWidth) / 2.0), round((height - cropHeight) / 2.0),
+                               round(cropWidth), round(cropHeight));
 
-  if(image.size.width < image.size.height) {
-    if (image.size.width < size.width) {
-      newCropWidth = size.width;
-    } else {
-      newCropWidth = image.size.width;
-    }
-    newCropHeight = (newCropWidth * size.height)/size.width;
-  } else {
-    if (image.size.height < size.height) {
-      newCropHeight = size.height;
-    } else {
-      newCropHeight = image.size.height;
-    }
-    newCropWidth = (newCropHeight * size.width)/size.height;
-  }
-  
-  double imageHeightDivided = image.size.height/2.0;
-  double imageWidthDivided = image.size.width/2.0;
-  
-  double x = imageWidthDivided - newCropWidth/2.0;
-  double y = imageHeightDivided - newCropHeight/2.0;
-  
-  CGRect cropRect;
-  if (UIDeviceOrientationIsLandscape(_orientation)) {
-    cropRect = CGRectMake(x, y, newCropWidth, newCropHeight);
-  } else {
-    if (_aspectRatioType == Ratio16_9) {
-      cropRect = CGRectMake(0, 0, image.size.height, image.size.width);
-    } else {
-      if (_aspectRatioType == Ratio4_3) {
-        double localX = imageHeightDivided - (imageHeightDivided / _aspectRatio);
-        cropRect = CGRectMake(localX, 0, image.size.height / _aspectRatio, image.size.width);
-      } else {
-        cropRect = CGRectMake(y, x, newCropWidth, newCropHeight);
-      }
-    }
-  }
-  
-  CGImageRef imageRef = CGImageCreateWithImageInRect([image CGImage], cropRect);
-  
+  CGImageRef imageRef = CGImageCreateWithImageInRect(source, cropRect);
   UIImage *cropped = [UIImage imageWithCGImage:imageRef];
   CGImageRelease(imageRef);
-  
+
   return cropped;
 }
 

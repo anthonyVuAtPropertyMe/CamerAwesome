@@ -741,7 +741,8 @@ class CameraInterface {
       String arg_captureMode,
       bool arg_enableImageStream,
       ExifPreferences arg_exifPreferences,
-      VideoOptions? arg_videoOptions) async {
+      VideoOptions? arg_videoOptions,
+      bool arg_usePhotoSessionPreset) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.CameraInterface.setupCamera', codec,
         binaryMessenger: _binaryMessenger);
@@ -755,7 +756,8 @@ class CameraInterface {
       arg_captureMode,
       arg_enableImageStream,
       arg_exifPreferences,
-      arg_videoOptions
+      arg_videoOptions,
+      arg_usePhotoSessionPreset
     ]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(

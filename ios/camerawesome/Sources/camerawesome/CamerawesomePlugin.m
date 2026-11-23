@@ -65,7 +65,7 @@ FlutterEventSink physicalButtonEventSink;
 
 #pragma mark - Camera engine methods
 
-- (void)setupCameraSensors:(nonnull NSArray<PigeonSensor *> *)sensors aspectRatio:(nonnull NSString *)aspectRatio zoom:(nonnull NSNumber *)zoom mirrorFrontCamera:(nonnull NSNumber *)mirrorFrontCamera enablePhysicalButton:(nonnull NSNumber *)enablePhysicalButton flashMode:(nonnull NSString *)flashMode captureMode:(nonnull NSString *)captureMode enableImageStream:(nonnull NSNumber *)enableImageStream exifPreferences:(nonnull ExifPreferences *)exifPreferences videoOptions:(nullable VideoOptions *)videoOptions completion:(nonnull void (^)(NSNumber * _Nullable, FlutterError * _Nullable))completion {
+- (void)setupCameraSensors:(nonnull NSArray<PigeonSensor *> *)sensors aspectRatio:(nonnull NSString *)aspectRatio zoom:(nonnull NSNumber *)zoom mirrorFrontCamera:(nonnull NSNumber *)mirrorFrontCamera enablePhysicalButton:(nonnull NSNumber *)enablePhysicalButton flashMode:(nonnull NSString *)flashMode captureMode:(nonnull NSString *)captureMode enableImageStream:(nonnull NSNumber *)enableImageStream exifPreferences:(nonnull ExifPreferences *)exifPreferences videoOptions:(nullable VideoOptions *)videoOptions usePhotoSessionPreset:(nonnull NSNumber *)usePhotoSessionPreset completion:(nonnull void (^)(NSNumber * _Nullable, FlutterError * _Nullable))completion {
   
   CaptureModes captureModeType = [CaptureModeUtils captureModeFromCaptureModeType:captureMode];
   if (![CameraPermissionsController checkAndRequestPermission]) {
@@ -130,6 +130,7 @@ FlutterEventSink physicalButtonEventSink;
                                                enablePhysicalButton:[enablePhysicalButton boolValue]
                                                     aspectRatioMode:aspectRatioMode
                                                         captureMode:captureModeType
+                                              usePhotoSessionPreset:[usePhotoSessionPreset boolValue]
                                                          completion:completion
                                                       dispatchQueue:dispatch_queue_create("camerawesome.single_preview.dispatchqueue", NULL)];
     

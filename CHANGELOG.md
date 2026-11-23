@@ -1,3 +1,6 @@
+# Unreleased
+- iOS: new `SaveConfig.photo(usePhotoSessionPreset: true)` option, off by default. It uses `AVCaptureSessionPresetPhoto`, so a 4:3 photo is captured at the photo format's own size instead of being cropped from a 16:9 frame. Ignored on Android and Web and when image analysis is enabled.
+
 # 2.5.0
 - Fix iOS camera zoom change crash (thanks @haf and @chaosue) 
 - Fix camera preview not accurate with the result photo

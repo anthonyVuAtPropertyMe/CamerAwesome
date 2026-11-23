@@ -129,6 +129,7 @@ class CameraAwesomeX : CameraInterface, FlutterPlugin, ActivityAware {
         enableImageStream: Boolean,
         exifPreferences: ExifPreferences,
         videoOptions: VideoOptions?,
+        usePhotoSessionPreset: Boolean,
         callback: (Result<Boolean>) -> Unit
     ) {
         if (enablePhysicalButton) {

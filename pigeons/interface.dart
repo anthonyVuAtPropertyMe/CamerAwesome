@@ -334,6 +334,7 @@ abstract class CameraInterface {
     bool enableImageStream,
     ExifPreferences exifPreferences,
     VideoOptions? videoOptions,
+    bool usePhotoSessionPreset,
   );
 
   List<String> checkPermissions(List<String> permissions);
