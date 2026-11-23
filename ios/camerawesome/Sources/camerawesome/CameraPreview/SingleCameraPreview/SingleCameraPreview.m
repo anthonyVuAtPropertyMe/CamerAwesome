@@ -9,6 +9,7 @@
 
 @implementation SingleCameraPreview {
   dispatch_queue_t _dispatchQueue;
+  dispatch_queue_t _previewQueue;
 }
 
 - (instancetype)initWithCameraSensor:(PigeonSensorPosition)sensor
@@ -39,7 +40,10 @@
   _captureVideoOutput = [AVCaptureVideoDataOutput new];
   _captureVideoOutput.videoSettings = @{(NSString*)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA)};
   [_captureVideoOutput setAlwaysDiscardsLateVideoFrames:YES];
-  [_captureVideoOutput setSampleBufferDelegate:self queue:dispatch_get_main_queue()];
+  // Preview frames are handled on their own serial queue, not the main one: the callback only
+  // swaps the latest pixel buffer atomically and tells the texture registry a frame is ready.
+  _previewQueue = dispatch_queue_create("com.apparence.camerawesome.preview", DISPATCH_QUEUE_SERIAL);
+  [_captureVideoOutput setSampleBufferDelegate:self queue:_previewQueue];
   [_captureSession addOutputWithNoConnections:_captureVideoOutput];
   
   [self initCameraPreview:sensor];
