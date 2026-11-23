@@ -8,6 +8,7 @@
 #import "SingleCameraPreview.h"
 
 @implementation SingleCameraPreview {
+  BOOL _usePhotoSessionPreset;
   dispatch_queue_t _dispatchQueue;
   dispatch_queue_t _previewQueue;
 }
@@ -20,12 +21,14 @@
                 enablePhysicalButton:(BOOL)enablePhysicalButton
                      aspectRatioMode:(AspectRatio)aspectRatioMode
                          captureMode:(CaptureModes)captureMode
+               usePhotoSessionPreset:(BOOL)usePhotoSessionPreset
                           completion:(nonnull void (^)(NSNumber * _Nullable, FlutterError * _Nullable))completion
                        dispatchQueue:(dispatch_queue_t)dispatchQueue {
   self = [super init];
   
   _completion = completion;
   _dispatchQueue = dispatchQueue;
+  _usePhotoSessionPreset = usePhotoSessionPreset;
   
   _previewTexture = [[CameraPreviewTexture alloc] init];
   
@@ -108,11 +111,38 @@
 // TODO: move this to a QualityController
 /// Assign the default preview qualities
 - (void)setBestPreviewQuality {
+  if ([self canUsePhotoSessionPreset]) {
+    [self setPhotoSessionPreset];
+    return;
+  }
   NSArray *qualities = [CameraQualities captureFormatsForDevice:_captureDevice];
   PreviewSize *firstPreviewSize = [qualities count] > 0 ? qualities.lastObject : [PreviewSize makeWithWidth:@3840 height:@2160];
   
   CGSize firstSize = CGSizeMake([firstPreviewSize.width floatValue], [firstPreviewSize.height floatValue]);
   [self setCameraPreset:firstSize];
+}
+
+/// A session that opted in and neither records video nor streams images can use the photo preset.
+- (BOOL)canUsePhotoSessionPreset {
+  return _usePhotoSessionPreset
+      && _captureMode != Video
+      && !_videoController.isRecording
+      && !_imageStreamController.streamImages
+      && [_captureSession canSetSessionPreset:AVCaptureSessionPresetPhoto];
+}
+
+/// Photo preset: the 4:3 photo format (4032x3024 on a 12 MP camera) instead of the best video
+/// format, which is 16:9 and has to be cropped to 4:3 afterwards.
+- (void)setPhotoSessionPreset {
+  if (![_captureSession.sessionPreset isEqualToString:AVCaptureSessionPresetPhoto]) {
+    [_captureSession setSessionPreset:AVCaptureSessionPresetPhoto];
+  }
+  _currentPreset = AVCaptureSessionPresetPhoto;
+  // getSizeForPreset only knows the video presets, so take the size from the active format.
+  CMVideoDimensions dimensions =
+      CMVideoFormatDescriptionGetDimensions(_captureDevice.activeFormat.formatDescription);
+  _currentPreviewSize = CGSizeMake(dimensions.width, dimensions.height);
+  [_videoController setPreviewSize:_currentPreviewSize];
 }
 
 /// Save exif preferences when taking picture

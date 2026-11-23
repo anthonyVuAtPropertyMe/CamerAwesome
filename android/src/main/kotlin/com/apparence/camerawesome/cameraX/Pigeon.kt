@@ -759,7 +759,7 @@ private object CameraInterfaceCodec : StandardMessageCodec() {
 
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface CameraInterface {
-  fun setupCamera(sensors: List<PigeonSensor>, aspectRatio: String, zoom: Double, mirrorFrontCamera: Boolean, enablePhysicalButton: Boolean, flashMode: String, captureMode: String, enableImageStream: Boolean, exifPreferences: ExifPreferences, videoOptions: VideoOptions?, callback: (Result<Boolean>) -> Unit)
+  fun setupCamera(sensors: List<PigeonSensor>, aspectRatio: String, zoom: Double, mirrorFrontCamera: Boolean, enablePhysicalButton: Boolean, flashMode: String, captureMode: String, enableImageStream: Boolean, exifPreferences: ExifPreferences, videoOptions: VideoOptions?, usePhotoSessionPreset: Boolean, callback: (Result<Boolean>) -> Unit)
   fun checkPermissions(permissions: List<String>): List<String>
   /**
    * Returns given [CamerAwesomePermission] list (as String). Location permission might be
@@ -831,7 +831,8 @@ interface CameraInterface {
             val enableImageStreamArg = args[7] as Boolean
             val exifPreferencesArg = args[8] as ExifPreferences
             val videoOptionsArg = args[9] as VideoOptions?
-            api.setupCamera(sensorsArg, aspectRatioArg, zoomArg, mirrorFrontCameraArg, enablePhysicalButtonArg, flashModeArg, captureModeArg, enableImageStreamArg, exifPreferencesArg, videoOptionsArg) { result: Result<Boolean> ->
+            val usePhotoSessionPresetArg = args[10] as Boolean
+            api.setupCamera(sensorsArg, aspectRatioArg, zoomArg, mirrorFrontCameraArg, enablePhysicalButtonArg, flashModeArg, captureModeArg, enableImageStreamArg, exifPreferencesArg, videoOptionsArg, usePhotoSessionPresetArg) { result: Result<Boolean> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

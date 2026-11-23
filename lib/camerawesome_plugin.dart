@@ -185,6 +185,7 @@ class CamerawesomePlugin {
     required ExifPreferences exifPreferences,
     required VideoOptions? videoOptions,
     required bool mirrorFrontCamera,
+    bool usePhotoSessionPreset = false,
   }) async {
     return CameraInterface()
         .setupCamera(
@@ -200,6 +201,7 @@ class CamerawesomePlugin {
           enableImageStream,
           exifPreferences,
           videoOptions,
+          usePhotoSessionPreset,
         )
         .then((value) => true);
   }

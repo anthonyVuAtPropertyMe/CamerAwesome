@@ -16,6 +16,13 @@ class SaveConfig {
   /// Choose if you want to persist user location in image metadata or not
   final ExifPreferences? exifPreferences;
 
+  /// iOS only, and only for [SaveConfig.photo]. Uses the 4:3 photo session
+  /// preset (`AVCaptureSessionPresetPhoto`) instead of the best video format,
+  /// so a 4:3 photo is captured at the photo format's own size instead of being
+  /// cropped from a 16:9 frame. Ignored on Android and Web, and when image
+  /// analysis is enabled. Defaults to false.
+  final bool usePhotoSessionPreset;
+
   SaveConfig._({
     this.photoPathBuilder,
     this.videoPathBuilder,
@@ -24,6 +31,7 @@ class SaveConfig {
     this.videoOptions,
     this.exifPreferences,
     required this.mirrorFrontCamera,
+    this.usePhotoSessionPreset = false,
   });
 
   /// You only want to take photos
@@ -31,6 +39,7 @@ class SaveConfig {
     CaptureRequestBuilder? pathBuilder,
     ExifPreferences? exifPreferences,
     bool mirrorFrontCamera = false,
+    bool usePhotoSessionPreset = false,
   }) : this._(
           photoPathBuilder: pathBuilder ??
               (sensors) => AwesomeCaptureRequestBuilder()
@@ -39,6 +48,7 @@ class SaveConfig {
           initialCaptureMode: CaptureMode.photo,
           exifPreferences: exifPreferences,
           mirrorFrontCamera: mirrorFrontCamera,
+          usePhotoSessionPreset: usePhotoSessionPreset,
         );
 
   /// You only want to take videos

@@ -74,6 +74,7 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
                 enablePhysicalButton:(BOOL)enablePhysicalButton
                      aspectRatioMode:(AspectRatio)aspectRatioMode
                          captureMode:(CaptureModes)captureMode
+               usePhotoSessionPreset:(BOOL)usePhotoSessionPreset
                           completion:(nonnull void (^)(NSNumber * _Nullable, FlutterError * _Nullable))completion
                        dispatchQueue:(dispatch_queue_t)dispatchQueue;
 - (void)setImageStreamEvent:(FlutterEventSink)imageStreamEventSink;
