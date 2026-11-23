@@ -69,22 +69,120 @@
   return dest_data;
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-implementations"
++ (dispatch_queue_t)ioQueue {
+  static dispatch_queue_t queue;
+  static dispatch_once_t once;
+  dispatch_once(&once, ^{
+    queue = dispatch_queue_create("com.apparence.camerawesome.photo-io", DISPATCH_QUEUE_SERIAL);
+  });
+  return queue;
+}
+
 - (void)captureOutput:(AVCapturePhotoOutput *)output
-didFinishProcessingPhotoSampleBuffer:(CMSampleBufferRef)photoSampleBuffer
-previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
-     resolvedSettings:(AVCaptureResolvedPhotoSettings *)resolvedSettings
-      bracketSettings:(AVCaptureBracketedStillImageSettings *)bracketSettings
+didFinishProcessingPhoto:(AVCapturePhoto *)photo
                 error:(NSError *)error {
-#pragma clang diagnostic pop
-  
   selfReference = nil;
   if (error) {
     _completion(nil, [FlutterError errorWithCode:@"CAPTURE ERROR" message:error.description details:@""]);
     return;
   }
-  
+
+  if ([self canWriteDirectly:photo]) {
+    NSData *directData = _saveGPSLocation
+        ? [photo fileDataRepresentationWithCustomizer:self]
+        : [photo fileDataRepresentation];
+    if (directData != nil) {
+      [self writeDirectly:directData];
+      return;
+    }
+  }
+
+  NSData *data = [photo fileDataRepresentation];
+  if (data == nil) {
+    _completion(nil, [FlutterError errorWithCode:@"CAPTURE ERROR" message:@"no photo data" details:@""]);
+    return;
+  }
+  [self cropAndWrite:data];
+}
+
+/// The camera's own file can be written as it is when the preview set the photo connection's
+/// orientation (so the file carries the right EXIF Orientation) and the photo already has the
+/// requested aspect ratio. Anything else (front camera, another ratio) goes through the crop.
+- (BOOL)canWriteDirectly:(AVCapturePhoto *)photo {
+  if (!_writesPhotoDirectly || _sensorPosition != PigeonSensorPositionBack) {
+    return NO;
+  }
+  CMVideoDimensions dimensions = photo.resolvedSettings.photoDimensions;
+  double longEdge = MAX(dimensions.width, dimensions.height);
+  double shortEdge = MAX(1, MIN(dimensions.width, dimensions.height));
+  return fabs(longEdge / shortEdge - _aspectRatio) <= 0.01;
+}
+
+- (void)writeDirectly:(NSData *)data {
+  dispatch_async([CameraPictureController ioQueue], ^{
+    if (![data writeToFile:self->_path options:NSDataWritingAtomic error:nil]) {
+      self->_completion(nil, [FlutterError errorWithCode:@"IOError" message:@"unable to write file" details:nil]);
+      return;
+    }
+    self->_completionBlock();
+  });
+}
+
+/// Adds GPS to the camera's own metadata; only used when `saveGPSLocation` is true.
+- (NSDictionary<NSString *, id> *)replacementMetadataForPhoto:(AVCapturePhoto *)photo {
+  NSMutableDictionary<NSString *, id> *metadata = [photo.metadata mutableCopy];
+  CLLocation *location = [[CLLocationManager new] location];
+  if (location != nil) {
+    ExifContainer *container = [[ExifContainer alloc] init];
+    [container addLocation:location];
+    metadata[(NSString *)kCGImagePropertyGPSDictionary] =
+        container.exifData[(NSString *)kCGImagePropertyGPSDictionary];
+  }
+  return metadata;
+}
+
+- (void)applyOrientationToPhotoConnectionOf:(AVCapturePhotoOutput *)output {
+  AVCaptureConnection *connection = [output connectionWithMediaType:AVMediaTypeVideo];
+  if (connection == nil) {
+    return;
+  }
+  // The same orientation the crop path stamps on its image, so both paths write the same EXIF
+  // Orientation for the back camera.
+  AVCaptureVideoOrientation videoOrientation;
+  CGFloat angle;
+  switch ([self getJpegOrientation]) {
+    case UIImageOrientationLeft:
+      videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
+      angle = 270;
+      break;
+    case UIImageOrientationDown:
+      videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
+      angle = 180;
+      break;
+    case UIImageOrientationUp:
+      videoOrientation = AVCaptureVideoOrientationLandscapeRight;
+      angle = 0;
+      break;
+    default:
+      videoOrientation = AVCaptureVideoOrientationPortrait;
+      angle = 90;
+      break;
+  }
+  if (@available(iOS 17.0, *)) {
+    if ([connection isVideoRotationAngleSupported:angle]) {
+      connection.videoRotationAngle = angle;
+      return;
+    }
+  }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+  if (connection.isVideoOrientationSupported) {
+    connection.videoOrientation = videoOrientation;
+  }
+#pragma clang diagnostic pop
+}
+
+- (void)cropAndWrite:(NSData *)data {
   // Add exif data
   ExifContainer *container = [[ExifContainer alloc] init];
   [container addCreationDate:[NSDate date]];
@@ -95,13 +193,6 @@ previewPhotoSampleBuffer:(CMSampleBufferRef)previewPhotoSampleBuffer
     CLLocation *location = [locationManager location];
     [container addLocation:location];
   }
-  
-  // we ignore this error because plugin can only be installed on iOS 11+
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  NSData *data = [AVCapturePhotoOutput JPEGPhotoDataRepresentationForJPEGSampleBuffer:photoSampleBuffer
-                                                             previewPhotoSampleBuffer:previewPhotoSampleBuffer];
-#pragma clang diagnostic pop
   
   UIImage *image = [UIImage imageWithCGImage:[UIImage imageWithData:data].CGImage
                                        scale:1.0
