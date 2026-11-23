@@ -1,0 +1,37 @@
+ios/camerawesome/Sources/camerawesome/Spike/PME44386Spike.m
+  s_b0aaf9b7772462::t_3e595b7414e559 43
+  s_b0aaf9b7772462::t_ac6b388cfba446 19
+  s_b0aaf9b7772462::t_9f871c04e33667 13-14,20-25,42,50-51,71-74,104-147
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/CameraXState.kt
+  s_b0aaf9b7772462::t_e61095266ae629 197
+  s_b0aaf9b7772462::t_083e20a3172a5f 280-333
+  s_b0aaf9b7772462::t_6b62c49016fe63 390-392
+lib/camerawesome_plugin.dart
+  s_b0aaf9b7772462::t_de69f49ae56580 407-408,410
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/CameraAwesomeX.kt
+  s_b0aaf9b7772462::t_8e03fb1d341900 569,573
+  s_b0aaf9b7772462::t_84680915d8c477 628-630,632-638
+ios/camerawesome/Sources/camerawesome/CameraPreview/SingleCameraPreview/SingleCameraPreview.m
+  s_b0aaf9b7772462::t_86daa0dc564d99 228-238
+  s_b0aaf9b7772462::t_fc1faaf373af43 249-256
+  s_b0aaf9b7772462::t_721e06fd6e8ba2 44-48,690-695,697,716
+ios/camerawesome/Sources/camerawesome/include/PME44386Spike.h
+  s_b0aaf9b7772462::t_5cf66c62ed5482 31-32
+  s_b0aaf9b7772462::t_75398fb6455059 33-34,55-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7e6a673bf47fa302ca26d62240325d6373dfac90",
+  "prompts": {},
+  "sessions": {
+    "s_b0aaf9b7772462": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "23c4e64e-d101-49f4-ac1c-fb96c6c0e589",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Anthony Vu <anthonyvu@propertyme.com>"
+    }
+  }
+}
