@@ -1,0 +1,19 @@
+ios/camerawesome/Sources/camerawesome/CameraPreview/SingleCameraPreview/SingleCameraPreview.m
+  s_b0aaf9b7772462::t_88e9e5dc04004d 12,43-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d825a5faacf1ee8bed64119b8d4e9f938dd1874c",
+  "prompts": {},
+  "sessions": {
+    "s_b0aaf9b7772462": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "23c4e64e-d101-49f4-ac1c-fb96c6c0e589",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Anthony Vu <anthonyvu@propertyme.com>"
+    }
+  }
+}
