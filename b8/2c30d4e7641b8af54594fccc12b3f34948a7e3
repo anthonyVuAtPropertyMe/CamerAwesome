@@ -1,0 +1,61 @@
+CHANGELOG.md
+  s_44f6d52475bb5e::t_4c97fffed324da 3-4
+README.md
+  s_44f6d52475bb5e::t_1a7c16786067d9 350-377
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/CameraAwesomeX.kt
+  s_44f6d52475bb5e::t_a785347f75c2a3 71-72,166,786-800
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/CameraXState.kt
+  s_44f6d52475bb5e::t_a763c473810875 60-64,151,221,272-307
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/Pigeon.kt
+  s_44f6d52475bb5e::t_bbfabd2435d3ee 46-68,259-291,747,752,757,766-770,796,800,804,812,816-819,867,1439-1458
+ios/camerawesome/Sources/camerawesome/CameraPreview/MultiCameraPreview/MultiCameraPreview.m
+  s_44f6d52475bb5e::t_2bf9bfa4f38130 9,294,374-376
+ios/camerawesome/Sources/camerawesome/CameraPreview/SingleCameraPreview/SingleCameraPreview.m
+  s_44f6d52475bb5e::t_394533027357d2 9,198,558-560
+ios/camerawesome/Sources/camerawesome/CamerawesomePlugin.m
+  s_44f6d52475bb5e::t_896bfce789e896 22-23,125,150,505-512
+ios/camerawesome/Sources/camerawesome/Pigeon/Pigeon.m
+  s_44f6d52475bb5e::t_7b6ac580af4ae1 36-41,145-173,629,631,633,637-638,662,665,668,674,677-679,1273-1291
+ios/camerawesome/Sources/camerawesome/Utils/CapturePriority/CapturePriorityUtils.m
+  s_44f6d52475bb5e::t_cb961d5d44b2e2 1-38
+ios/camerawesome/Sources/camerawesome/include/CapturePriorityUtils.h
+  s_44f6d52475bb5e::t_790daf556c9c40 1-27
+ios/camerawesome/Sources/camerawesome/include/MultiCameraPreview.h
+  s_44f6d52475bb5e::t_aa2bc6f42602da 35-36
+ios/camerawesome/Sources/camerawesome/include/Pigeon.h
+  s_44f6d52475bb5e::t_877ebfcfe52b45 13-25,115,142-155,344
+ios/camerawesome/Sources/camerawesome/include/SingleCameraPreview.h
+  s_44f6d52475bb5e::t_e409acaf79b142 45-46
+lib/camerawesome_plugin.dart
+  s_44f6d52475bb5e::t_a63f454e0ac8a3 180-188
+lib/pigeon.dart
+  s_44f6d52475bb5e::t_3c3acd65bc3127 11-23,169-204,726,729,732,738,741-743,761,763,765,769-770,1537-1564
+lib/src/orchestrator/models/models.dart
+  s_44f6d52475bb5e::t_8bb3fa937f4205 7
+lib/src/orchestrator/models/photo_capture_options.dart
+  s_44f6d52475bb5e::t_554b0bf42cf096 1-61
+lib/src/orchestrator/models/save_config.dart
+  s_44f6d52475bb5e::t_97b22d369dcdf7 26-30,40,49,59
+lib/src/orchestrator/states/preparing_camera_state.dart
+  s_44f6d52475bb5e::t_2c2a2ecb50dc7d 197-201
+pigeons/interface.dart
+  s_44f6d52475bb5e::t_0d9fbbe4c95fff 21-50,446-448
+test/photo_capture_options_test.dart
+  s_44f6d52475bb5e::t_e417081c6e9362 1-127
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b82c30d4e7641b8af54594fccc12b3f34948a7e3",
+  "prompts": {},
+  "sessions": {
+    "s_44f6d52475bb5e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9265ad2a-8d7f-43bb-9369-79346bbe3102",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Anthony Vu <anthonyvu@propertyme.com>"
+    }
+  }
+}
