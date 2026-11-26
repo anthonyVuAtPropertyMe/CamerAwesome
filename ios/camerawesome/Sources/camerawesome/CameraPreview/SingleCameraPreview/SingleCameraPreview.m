@@ -6,6 +6,7 @@
 //
 
 #import "SingleCameraPreview.h"
+#import "CapturePriorityUtils.h"
 
 @implementation SingleCameraPreview {
   BOOL _usePhotoSessionPreset;
@@ -194,6 +195,7 @@
   // Creating photo output
   _capturePhotoOutput = [AVCapturePhotoOutput new];
   [_capturePhotoOutput setHighResolutionCaptureEnabled:YES];
+  [CapturePriorityUtils allowAllPrioritizationsOnOutput:_capturePhotoOutput];
   [_captureSession addOutput:_capturePhotoOutput];
   
   // Mirror the preview only on portrait mode
@@ -553,6 +555,9 @@
   AVCapturePhotoSettings *settings = [AVCapturePhotoSettings photoSettings];
   [settings setFlashMode:_flashMode];
   [settings setHighResolutionPhotoEnabled:YES];
+  [CapturePriorityUtils applyPriority:self.photoCapturePriority
+                           toSettings:settings
+                               output:_capturePhotoOutput];
   
   if (_cameraSensorPosition == PigeonSensorPositionBack) {
     [cameraPicture applyOrientationToPhotoConnectionOf:_capturePhotoOutput];

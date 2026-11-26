@@ -57,6 +57,11 @@ data class CameraXState(
     var imageAnalysisBuilder: ImageAnalysisBuilder? = null
     private var imageAnalysis: ImageAnalysis? = null
 
+    // Photo capture options, CameraX's own defaults until setPhotoCaptureOptions is called.
+    private var photoCaptureMode: Int = ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
+    private var jpegQuality: Int? = null
+    private var photoMaxSize: Size? = null
+
     private val mainCameraInfos: CameraInfo
         @SuppressLint("RestrictedApi") get() {
             if (previewCamera == null && concurrentCamera == null) {
@@ -142,11 +147,8 @@ data class CameraXState(
 
                 if (currentCaptureMode == CaptureModes.PHOTO) {
                     val imageCapture = ImageCapture.Builder()
-//                .setJpegQuality(100)
                         .apply {
-                            if (rational.denominator != rational.numerator) {
-                                setResolutionSelector(resolutionSelector)
-                            }
+                            applyPhotoCaptureOptions()
 
                             setFlashMode(
                                 if (isFirst) when (flashMode) {
@@ -215,12 +217,8 @@ data class CameraXState(
 
             if (currentCaptureMode == CaptureModes.PHOTO) {
                 val imageCapture = ImageCapture.Builder()
-//                .setJpegQuality(100)
                     .apply {
-                        //photoSize?.let { setTargetResolution(it) }
-                        if (rational.denominator != rational.numerator) {
-                            setResolutionSelector(resolutionSelector)
-                        }
+                        applyPhotoCaptureOptions()
                         setFlashMode(
                             when (flashMode) {
                                 FlashMode.ALWAYS, FlashMode.ON -> ImageCapture.FLASH_MODE_ON
@@ -271,8 +269,42 @@ data class CameraXState(
         }
     }
 
-    private fun getResolutionSelector(aspectRatio: Int): ResolutionSelector {
-        val resolutionStrategy = when (aspectRatio) {
+    /// Capture priority, JPEG quality and requested photo size for the photos taken from now on.
+    /// Call updateLifecycle() afterwards to apply them to a running camera.
+    fun setPhotoCaptureOptions(options: PigeonPhotoCaptureOptions) {
+        photoCaptureMode = if (options.priority == PigeonCapturePriority.QUALITY) {
+            ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
+        } else {
+            ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
+        }
+        jpegQuality = options.quality?.toInt()?.coerceIn(1, 100)
+        photoMaxSize = options.maxPhotoSize?.let { Size(it.width.toInt(), it.height.toInt()) }
+    }
+
+    /// Capture mode, JPEG quality and resolution selector of an ImageCapture. The selector is only
+    /// set for a ratio other than 1:1 (as before) or when a photo size was requested.
+    private fun ImageCapture.Builder.applyPhotoCaptureOptions() {
+        setCaptureMode(photoCaptureMode)
+        jpegQuality?.let { setJpegQuality(it) }
+        val requestedSize = photoMaxSize
+        if (requestedSize != null || rational.denominator != rational.numerator) {
+            setResolutionSelector(
+                getResolutionSelector(aspectRatio ?: AspectRatio.RATIO_4_3, requestedSize)
+            )
+        }
+    }
+
+    /// With a [requestedSize], CameraX takes the closest size at or above it, else the closest below.
+    private fun getResolutionSelector(
+        aspectRatio: Int,
+        requestedSize: Size? = null
+    ): ResolutionSelector {
+        val resolutionStrategy = if (requestedSize != null) {
+            ResolutionStrategy(
+                requestedSize,
+                ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
+            )
+        } else when (aspectRatio) {
             AspectRatio.RATIO_16_9 -> ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY
             AspectRatio.RATIO_4_3 -> ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY
             else -> ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY

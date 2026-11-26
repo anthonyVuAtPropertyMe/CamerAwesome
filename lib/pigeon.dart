@@ -8,6 +8,19 @@ import 'dart:typed_data' show Float64List, Int32List, Int64List, Uint8List;
 import 'package:flutter/foundation.dart' show ReadBuffer, WriteBuffer;
 import 'package:flutter/services.dart';
 
+/// How a photo capture trades speed against image processing. Maps to
+/// `AVCapturePhotoQualityPrioritization` on iOS and to the CameraX capture
+/// mode on Android ([quality] is `CAPTURE_MODE_MAXIMIZE_QUALITY`, the others
+/// are `CAPTURE_MODE_MINIMIZE_LATENCY`).
+enum PigeonCapturePriority {
+  /// No priority requested: keep the platform's default. Spelled out because
+  /// Pigeon 9.2.5 decodes a null enum field as the first value on iOS.
+  platformDefault,
+  speed,
+  balanced,
+  quality,
+}
+
 enum PigeonSensorPosition {
   back,
   front,
@@ -149,6 +162,42 @@ class ExifPreferences {
     result as List<Object?>;
     return ExifPreferences(
       saveGPSLocation: result[0]! as bool,
+    );
+  }
+}
+
+/// Photo capture options. Null fields keep the platform's default.
+class PigeonPhotoCaptureOptions {
+  PigeonPhotoCaptureOptions({
+    required this.priority,
+    this.quality,
+    this.maxPhotoSize,
+  });
+
+  PigeonCapturePriority priority;
+
+  /// Android only: JPEG quality, 1 to 100.
+  int? quality;
+
+  /// Android only: the photo size to ask CameraX for.
+  PreviewSize? maxPhotoSize;
+
+  Object encode() {
+    return <Object?>[
+      priority.index,
+      quality,
+      maxPhotoSize?.encode(),
+    ];
+  }
+
+  static PigeonPhotoCaptureOptions decode(Object result) {
+    result as List<Object?>;
+    return PigeonPhotoCaptureOptions(
+      priority: PigeonCapturePriority.values[result[0]! as int],
+      quality: result[1] as int?,
+      maxPhotoSize: result[2] != null
+          ? PreviewSize.decode(result[2]! as List<Object?>)
+          : null,
     );
   }
 }
@@ -674,20 +723,23 @@ class _CameraInterfaceCodec extends StandardMessageCodec {
     } else if (value is ExifPreferences) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else if (value is PigeonSensor) {
+    } else if (value is PigeonPhotoCaptureOptions) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else if (value is PigeonSensorTypeDevice) {
+    } else if (value is PigeonSensor) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is PreviewSize) {
+    } else if (value is PigeonSensorTypeDevice) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
     } else if (value is PreviewSize) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    } else if (value is VideoOptions) {
+    } else if (value is PreviewSize) {
       buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    } else if (value is VideoOptions) {
+      buffer.putUint8(137);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -706,14 +758,16 @@ class _CameraInterfaceCodec extends StandardMessageCodec {
       case 131:
         return ExifPreferences.decode(readValue(buffer)!);
       case 132:
-        return PigeonSensor.decode(readValue(buffer)!);
+        return PigeonPhotoCaptureOptions.decode(readValue(buffer)!);
       case 133:
-        return PigeonSensorTypeDevice.decode(readValue(buffer)!);
+        return PigeonSensor.decode(readValue(buffer)!);
       case 134:
-        return PreviewSize.decode(readValue(buffer)!);
+        return PigeonSensorTypeDevice.decode(readValue(buffer)!);
       case 135:
         return PreviewSize.decode(readValue(buffer)!);
       case 136:
+        return PreviewSize.decode(readValue(buffer)!);
+      case 137:
         return VideoOptions.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -1477,6 +1531,34 @@ class CameraInterface {
       );
     } else {
       return;
+    }
+  }
+
+  Future<bool> setPhotoCaptureOptions(
+      PigeonPhotoCaptureOptions arg_options) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.CameraInterface.setPhotoCaptureOptions', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_options]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as bool?)!;
     }
   }
 

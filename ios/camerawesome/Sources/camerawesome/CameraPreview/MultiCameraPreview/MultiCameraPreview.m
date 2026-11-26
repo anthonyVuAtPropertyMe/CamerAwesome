@@ -6,6 +6,7 @@
 //
 
 #import "MultiCameraPreview.h"
+#import "CapturePriorityUtils.h"
 
 @implementation MultiCameraPreview
 
@@ -290,6 +291,7 @@
   // Creating photo output
   AVCapturePhotoOutput *capturePhotoOutput = [AVCapturePhotoOutput new];
   [capturePhotoOutput setHighResolutionCaptureEnabled:YES];
+  [CapturePriorityUtils allowAllPrioritizationsOnOutput:capturePhotoOutput];
   [self.cameraSession addOutput:capturePhotoOutput];
   
   // move this all this in the cameradevice object
@@ -369,6 +371,9 @@
     // Create settings instance
     AVCapturePhotoSettings *settings = [AVCapturePhotoSettings photoSettings];
     [settings setHighResolutionPhotoEnabled:YES];
+    [CapturePriorityUtils applyPriority:self.photoCapturePriority
+                             toSettings:settings
+                                 output:self.devices[i].capturePhotoOutput];
     [self.devices[i].capturePhotoOutput setPhotoSettingsForSceneMonitoring:settings];
     
     [self.devices[i].capturePhotoOutput capturePhotoWithSettings:settings

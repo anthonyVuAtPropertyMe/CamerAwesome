@@ -177,6 +177,15 @@ class CamerawesomePlugin {
     return CameraInterface().receivedImageFromStream();
   }
 
+  /// Sets how photos are captured (priority, JPEG quality, photo size).
+  ///
+  /// The native side keeps the options and applies them to the camera that
+  /// [init] sets up, so call this before [init]. Calling it later changes the
+  /// running camera, which on Android restarts the preview.
+  static Future<bool> setPhotoCaptureOptions(PhotoCaptureOptions options) {
+    return CameraInterface().setPhotoCaptureOptions(options.toPigeon());
+  }
+
   static Future<bool?> init(
     SensorConfig sensorConfig,
     bool enableImageStream,
