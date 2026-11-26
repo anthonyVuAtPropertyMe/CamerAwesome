@@ -33,6 +33,12 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList;
 @end
 
+@interface PigeonPhotoCaptureOptions ()
++ (PigeonPhotoCaptureOptions *)fromList:(NSArray *)list;
++ (nullable PigeonPhotoCaptureOptions *)nullableFromList:(NSArray *)list;
+- (NSArray *)toList;
+@end
+
 @interface PigeonSensor ()
 + (PigeonSensor *)fromList:(NSArray *)list;
 + (nullable PigeonSensor *)nullableFromList:(NSArray *)list;
@@ -132,6 +138,35 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
 - (NSArray *)toList {
   return @[
     (self.saveGPSLocation ?: [NSNull null]),
+  ];
+}
+@end
+
+@implementation PigeonPhotoCaptureOptions
++ (instancetype)makeWithPriority:(PigeonCapturePriority)priority
+    quality:(nullable NSNumber *)quality
+    maxPhotoSize:(nullable PreviewSize *)maxPhotoSize {
+  PigeonPhotoCaptureOptions* pigeonResult = [[PigeonPhotoCaptureOptions alloc] init];
+  pigeonResult.priority = priority;
+  pigeonResult.quality = quality;
+  pigeonResult.maxPhotoSize = maxPhotoSize;
+  return pigeonResult;
+}
++ (PigeonPhotoCaptureOptions *)fromList:(NSArray *)list {
+  PigeonPhotoCaptureOptions *pigeonResult = [[PigeonPhotoCaptureOptions alloc] init];
+  pigeonResult.priority = [GetNullableObjectAtIndex(list, 0) integerValue];
+  pigeonResult.quality = GetNullableObjectAtIndex(list, 1);
+  pigeonResult.maxPhotoSize = [PreviewSize nullableFromList:(GetNullableObjectAtIndex(list, 2))];
+  return pigeonResult;
+}
++ (nullable PigeonPhotoCaptureOptions *)nullableFromList:(NSArray *)list {
+  return (list) ? [PigeonPhotoCaptureOptions fromList:list] : nil;
+}
+- (NSArray *)toList {
+  return @[
+    @(self.priority),
+    (self.quality ?: [NSNull null]),
+    (self.maxPhotoSize ? [self.maxPhotoSize toList] : [NSNull null]),
   ];
 }
 @end
@@ -591,14 +626,16 @@ void AnalysisImageUtilsSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObjec
     case 131: 
       return [ExifPreferences fromList:[self readValue]];
     case 132: 
-      return [PigeonSensor fromList:[self readValue]];
+      return [PigeonPhotoCaptureOptions fromList:[self readValue]];
     case 133: 
-      return [PigeonSensorTypeDevice fromList:[self readValue]];
+      return [PigeonSensor fromList:[self readValue]];
     case 134: 
-      return [PreviewSize fromList:[self readValue]];
+      return [PigeonSensorTypeDevice fromList:[self readValue]];
     case 135: 
       return [PreviewSize fromList:[self readValue]];
     case 136: 
+      return [PreviewSize fromList:[self readValue]];
+    case 137: 
       return [VideoOptions fromList:[self readValue]];
     default:
       return [super readValueOfType:type];
@@ -622,20 +659,23 @@ void AnalysisImageUtilsSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObjec
   } else if ([value isKindOfClass:[ExifPreferences class]]) {
     [self writeByte:131];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PigeonSensor class]]) {
+  } else if ([value isKindOfClass:[PigeonPhotoCaptureOptions class]]) {
     [self writeByte:132];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PigeonSensorTypeDevice class]]) {
+  } else if ([value isKindOfClass:[PigeonSensor class]]) {
     [self writeByte:133];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[PreviewSize class]]) {
+  } else if ([value isKindOfClass:[PigeonSensorTypeDevice class]]) {
     [self writeByte:134];
     [self writeValue:[value toList]];
   } else if ([value isKindOfClass:[PreviewSize class]]) {
     [self writeByte:135];
     [self writeValue:[value toList]];
-  } else if ([value isKindOfClass:[VideoOptions class]]) {
+  } else if ([value isKindOfClass:[PreviewSize class]]) {
     [self writeByte:136];
+    [self writeValue:[value toList]];
+  } else if ([value isKindOfClass:[VideoOptions class]]) {
+    [self writeByte:137];
     [self writeValue:[value toList]];
   } else {
     [super writeValue:value];
@@ -1224,6 +1264,25 @@ void CameraInterfaceSetup(id<FlutterBinaryMessenger> binaryMessenger, NSObject<C
         FlutterError *error;
         [api setPreviewSizeSize:arg_size error:&error];
         callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel =
+      [[FlutterBasicMessageChannel alloc]
+        initWithName:@"dev.flutter.pigeon.CameraInterface.setPhotoCaptureOptions"
+        binaryMessenger:binaryMessenger
+        codec:CameraInterfaceGetCodec()];
+    if (api) {
+      NSCAssert([api respondsToSelector:@selector(setPhotoCaptureOptionsOptions:completion:)], @"CameraInterface api (%@) doesn't respond to @selector(setPhotoCaptureOptionsOptions:completion:)", api);
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        NSArray *args = message;
+        PigeonPhotoCaptureOptions *arg_options = GetNullableObjectAtIndex(args, 0);
+        [api setPhotoCaptureOptionsOptions:arg_options completion:^(NSNumber *_Nullable output, FlutterError *_Nullable error) {
+          callback(wrapResult(output, error));
+        }];
       }];
     } else {
       [channel setMessageHandler:nil];

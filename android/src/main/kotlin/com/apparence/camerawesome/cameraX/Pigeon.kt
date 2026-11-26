@@ -43,6 +43,29 @@ class FlutterError (
   val details: Any? = null
 ) : Throwable()
 
+/**
+ * How a photo capture trades speed against image processing. Maps to
+ * `AVCapturePhotoQualityPrioritization` on iOS and to the CameraX capture
+ * mode on Android ([quality] is `CAPTURE_MODE_MAXIMIZE_QUALITY`, the others
+ * are `CAPTURE_MODE_MINIMIZE_LATENCY`).
+ */
+enum class PigeonCapturePriority(val raw: Int) {
+  /**
+   * No priority requested: keep the platform's default. Spelled out because
+   * Pigeon 9.2.5 decodes a null enum field as the first value on iOS.
+   */
+  PLATFORMDEFAULT(0),
+  SPEED(1),
+  BALANCED(2),
+  QUALITY(3);
+
+  companion object {
+    fun ofRaw(raw: Int): PigeonCapturePriority? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 enum class PigeonSensorPosition(val raw: Int) {
   BACK(0),
   FRONT(1),
@@ -229,6 +252,39 @@ data class ExifPreferences (
   fun toList(): List<Any?> {
     return listOf<Any?>(
       saveGPSLocation,
+    )
+  }
+}
+
+/**
+ * Photo capture options. Null fields keep the platform's default.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class PigeonPhotoCaptureOptions (
+  val priority: PigeonCapturePriority,
+  /** Android only: JPEG quality, 1 to 100. */
+  val quality: Long? = null,
+  /** Android only: the photo size to ask CameraX for. */
+  val maxPhotoSize: PreviewSize? = null
+
+) {
+  companion object {
+    @Suppress("UNCHECKED_CAST")
+    fun fromList(list: List<Any?>): PigeonPhotoCaptureOptions {
+      val priority = PigeonCapturePriority.ofRaw(list[0] as Int)!!
+      val quality = list[1].let { if (it is Int) it.toLong() else it as Long? }
+      val maxPhotoSize: PreviewSize? = (list[2] as List<Any?>?)?.let {
+        PreviewSize.fromList(it)
+      }
+      return PigeonPhotoCaptureOptions(priority, quality, maxPhotoSize)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf<Any?>(
+      priority.raw,
+      quality,
+      maxPhotoSize?.toList(),
     )
   }
 }
@@ -688,17 +744,17 @@ private object CameraInterfaceCodec : StandardMessageCodec() {
       }
       132.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PigeonSensor.fromList(it)
+          PigeonPhotoCaptureOptions.fromList(it)
         }
       }
       133.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PigeonSensorTypeDevice.fromList(it)
+          PigeonSensor.fromList(it)
         }
       }
       134.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PreviewSize.fromList(it)
+          PigeonSensorTypeDevice.fromList(it)
         }
       }
       135.toByte() -> {
@@ -707,6 +763,11 @@ private object CameraInterfaceCodec : StandardMessageCodec() {
         }
       }
       136.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          PreviewSize.fromList(it)
+        }
+      }
+      137.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           VideoOptions.fromList(it)
         }
@@ -732,15 +793,15 @@ private object CameraInterfaceCodec : StandardMessageCodec() {
         stream.write(131)
         writeValue(stream, value.toList())
       }
-      is PigeonSensor -> {
+      is PigeonPhotoCaptureOptions -> {
         stream.write(132)
         writeValue(stream, value.toList())
       }
-      is PigeonSensorTypeDevice -> {
+      is PigeonSensor -> {
         stream.write(133)
         writeValue(stream, value.toList())
       }
-      is PreviewSize -> {
+      is PigeonSensorTypeDevice -> {
         stream.write(134)
         writeValue(stream, value.toList())
       }
@@ -748,8 +809,12 @@ private object CameraInterfaceCodec : StandardMessageCodec() {
         stream.write(135)
         writeValue(stream, value.toList())
       }
-      is VideoOptions -> {
+      is PreviewSize -> {
         stream.write(136)
+        writeValue(stream, value.toList())
+      }
+      is VideoOptions -> {
+        stream.write(137)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -799,6 +864,7 @@ interface CameraInterface {
   fun getEffectivPreviewSize(index: Long): PreviewSize?
   fun setPhotoSize(size: PreviewSize)
   fun setPreviewSize(size: PreviewSize)
+  fun setPhotoCaptureOptions(options: PigeonPhotoCaptureOptions, callback: (Result<Boolean>) -> Unit)
   fun setAspectRatio(aspectRatio: String)
   fun setupImageAnalysisStream(format: String, width: Long, maxFramesPerSecond: Double?, autoStart: Boolean)
   fun setExifPreferences(exifPreferences: ExifPreferences, callback: (Result<Boolean>) -> Unit)
@@ -1364,6 +1430,26 @@ interface CameraInterface {
               wrapped = wrapError(exception)
             }
             reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.CameraInterface.setPhotoCaptureOptions", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val optionsArg = args[0] as PigeonPhotoCaptureOptions
+            api.setPhotoCaptureOptions(optionsArg) { result: Result<Boolean> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
           }
         } else {
           channel.setMessageHandler(null)

@@ -32,6 +32,8 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
 @property (nonatomic, strong) NSArray<PigeonSensor *> *sensors;
 @property (nonatomic, strong) NSMutableArray<CameraDeviceInfo *> *devices;
 @property (nonatomic, strong) dispatch_queue_t dispatchQueue;
+/// Priority of the next photos, set from Dart through setPhotoCaptureOptions.
+@property(nonatomic) PigeonCapturePriority photoCapturePriority;
 @property(readonly, nonatomic) AVCaptureFlashMode flashMode;
 @property(readonly, nonatomic) AVCaptureTorchMode torchMode;
 @property(readonly, nonatomic) AspectRatio aspectRatio;

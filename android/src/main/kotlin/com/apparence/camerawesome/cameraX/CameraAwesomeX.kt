@@ -68,6 +68,8 @@ class CameraAwesomeX : CameraInterface, FlutterPlugin, ActivityAware {
     private val cameraPermissions = CameraPermissions()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var exifPreferences = ExifPreferences(false)
+    // Kept here so options sent before setupCamera reach the CameraXState it creates.
+    private var photoCaptureOptions: PigeonPhotoCaptureOptions? = null
     private var cancellationTokenSource = CancellationTokenSource()
     private var lastRecordedVideos: List<BehaviorSubject<Boolean>>? = null
     private var lastRecordedVideoSubscriptions: MutableList<Disposable>? = null
@@ -160,6 +162,7 @@ class CameraAwesomeX : CameraInterface, FlutterPlugin, ActivityAware {
             this.updateAspectRatio(aspectRatio)
             this.flashMode = FlashMode.valueOf(flashMode)
             this.enableAudioRecording = videoOptions?.enableAudio ?: true
+            photoCaptureOptions?.let { this.setPhotoCaptureOptions(it) }
         }
         this.exifPreferences = exifPreferences
         orientationStreamListener =
@@ -777,6 +780,21 @@ class CameraAwesomeX : CameraInterface, FlutterPlugin, ActivityAware {
             previewSize = getOrientedSize(size.width.toInt(), size.height.toInt())
             updateLifecycle(activity!!)
         }
+    }
+
+    @SuppressLint("RestrictedApi")
+    override fun setPhotoCaptureOptions(
+        options: PigeonPhotoCaptureOptions, callback: (Result<Boolean>) -> Unit
+    ) {
+        photoCaptureOptions = options
+        // Before setupCamera there is no camera to update; setupCamera applies the options.
+        if (::cameraState.isInitialized) {
+            cameraState.apply {
+                setPhotoCaptureOptions(options)
+                updateLifecycle(activity!!)
+            }
+        }
+        callback(Result.success(true))
     }
 
     override fun setAspectRatio(aspectRatio: String) {

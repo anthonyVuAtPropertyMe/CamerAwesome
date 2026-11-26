@@ -18,6 +18,36 @@ class ExifPreferences {
   ExifPreferences({required this.saveGPSLocation});
 }
 
+/// How a photo capture trades speed against image processing. Maps to
+/// `AVCapturePhotoQualityPrioritization` on iOS and to the CameraX capture
+/// mode on Android ([quality] is `CAPTURE_MODE_MAXIMIZE_QUALITY`, the others
+/// are `CAPTURE_MODE_MINIMIZE_LATENCY`).
+enum PigeonCapturePriority {
+  /// No priority requested: keep the platform's default. Spelled out because
+  /// Pigeon 9.2.5 decodes a null enum field as the first value on iOS.
+  platformDefault,
+  speed,
+  balanced,
+  quality,
+}
+
+/// Photo capture options. Null fields keep the platform's default.
+class PigeonPhotoCaptureOptions {
+  final PigeonCapturePriority priority;
+
+  /// Android only: JPEG quality, 1 to 100.
+  final int? quality;
+
+  /// Android only: the photo size to ask CameraX for.
+  final PreviewSize? maxPhotoSize;
+
+  PigeonPhotoCaptureOptions({
+    this.priority = PigeonCapturePriority.platformDefault,
+    this.quality,
+    this.maxPhotoSize,
+  });
+}
+
 class PigeonSensor {
   final PigeonSensorPosition position;
   final PigeonSensorType type;
@@ -411,6 +441,9 @@ abstract class CameraInterface {
   void setPhotoSize(PreviewSize size);
 
   void setPreviewSize(PreviewSize size);
+
+  @async
+  bool setPhotoCaptureOptions(PigeonPhotoCaptureOptions options);
 
   void setAspectRatio(String aspectRatio);
 

@@ -16,6 +16,11 @@ class SaveConfig {
   /// Choose if you want to persist user location in image metadata or not
   final ExifPreferences? exifPreferences;
 
+  /// Capture priority, JPEG quality and photo size, only used by
+  /// [SaveConfig.photo]. See [PhotoCaptureOptions] for what each platform
+  /// supports.
+  final PhotoCaptureOptions photoCaptureOptions;
+
   SaveConfig._({
     this.photoPathBuilder,
     this.videoPathBuilder,
@@ -24,6 +29,7 @@ class SaveConfig {
     this.videoOptions,
     this.exifPreferences,
     required this.mirrorFrontCamera,
+    this.photoCaptureOptions = const PhotoCaptureOptions(),
   });
 
   /// You only want to take photos
@@ -31,6 +37,7 @@ class SaveConfig {
     CaptureRequestBuilder? pathBuilder,
     ExifPreferences? exifPreferences,
     bool mirrorFrontCamera = false,
+    PhotoCaptureOptions photoCaptureOptions = const PhotoCaptureOptions(),
   }) : this._(
           photoPathBuilder: pathBuilder ??
               (sensors) => AwesomeCaptureRequestBuilder()
@@ -39,6 +46,7 @@ class SaveConfig {
           initialCaptureMode: CaptureMode.photo,
           exifPreferences: exifPreferences,
           mirrorFrontCamera: mirrorFrontCamera,
+          photoCaptureOptions: photoCaptureOptions,
         );
 
   /// You only want to take videos

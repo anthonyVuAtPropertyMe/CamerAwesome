@@ -1,3 +1,7 @@
+# Unreleased
+- New `SaveConfig.photo(photoCaptureOptions: PhotoCaptureOptions(...))`, off by default, with a `CapturePriority` (`speed`, `balanced`, `quality`), a JPEG `quality` and a `maxPhotoSize`. iOS: the priority sets `AVCapturePhotoQualityPrioritization`. Android: `quality` priority selects CameraX `CAPTURE_MODE_MAXIMIZE_QUALITY`, the others `CAPTURE_MODE_MINIMIZE_LATENCY`; `quality` sets the JPEG quality and `maxPhotoSize` asks CameraX for the closest size at or above it, which makes the photo size configurable again (the commented-out `setTargetResolution` never applied). Quality and size are ignored on iOS.
+- New Pigeon method `CameraInterface.setPhotoCaptureOptions`. The native side keeps the options and applies them to the camera that `setupCamera` creates, so `CamerawesomePlugin.setPhotoCaptureOptions` can be called before `init` without a second camera start.
+
 # 2.5.0
 - Fix iOS camera zoom change crash (thanks @haf and @chaosue) 
 - Fix camera preview not accurate with the result photo

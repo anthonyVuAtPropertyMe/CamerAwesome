@@ -42,6 +42,8 @@ AVCaptureAudioDataOutputSampleBufferDelegate>
 @property(readonly, nonatomic) AVCaptureVideoDataOutput *captureVideoOutput;
 @property(readonly, nonatomic) AVCaptureVideoPreviewLayer *previewLayer;
 @property(readonly, nonatomic) AVCapturePhotoOutput *capturePhotoOutput;
+/// Priority of the next photos, set from Dart through setPhotoCaptureOptions.
+@property(nonatomic) PigeonCapturePriority photoCapturePriority;
 
 @property(readonly, nonatomic) UIDeviceOrientation deviceOrientation;
 @property(readonly, nonatomic) AVCaptureFlashMode flashMode;

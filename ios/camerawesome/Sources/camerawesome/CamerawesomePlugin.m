@@ -19,6 +19,8 @@ FlutterEventSink physicalButtonEventSink;
 @property NSMutableArray<NSNumber *> *texturesIds;
 @property SingleCameraPreview *camera;
 @property MultiCameraPreview *multiCamera;
+// Kept here so options sent before setupCamera reach the camera it creates.
+@property PigeonCapturePriority photoCapturePriority;
 - (instancetype)init:(NSObject<FlutterPluginRegistrar>*)registrar;
 @end
 
@@ -120,6 +122,7 @@ FlutterEventSink physicalButtonEventSink;
       NSNumber *textureNumber = weakSelf.texturesIds[[i intValue]];
       [weakSelf.textureRegistry textureFrameAvailable:[textureNumber longLongValue]];
     };
+    self.multiCamera.photoCapturePriority = self.photoCapturePriority;
   } else {
     PigeonSensor *firstSensor = sensors.firstObject;
     self.camera = [[SingleCameraPreview alloc] initWithCameraSensor:firstSensor.position
@@ -143,6 +146,7 @@ FlutterEventSink physicalButtonEventSink;
     [self->_textureRegistry textureFrameAvailable:textureId];
     
     [self.texturesIds addObject:[NSNumber numberWithLongLong:textureId]];
+    self.camera.photoCapturePriority = self.photoCapturePriority;
   }
   
   completion(@(YES), nil);
@@ -495,6 +499,14 @@ FlutterEventSink physicalButtonEventSink;
   } else {
     [self.camera setExifPreferencesGPSLocation: exifPreferences.saveGPSLocation completion:completion];
   }
+}
+
+- (void)setPhotoCaptureOptionsOptions:(PigeonPhotoCaptureOptions *)options completion:(void(^)(NSNumber *_Nullable, FlutterError *_Nullable))completion {
+  // Only the priority applies on iOS. It is read at capture time, so a running camera needs no restart.
+  self.photoCapturePriority = options.priority;
+  self.camera.photoCapturePriority = options.priority;
+  self.multiCamera.photoCapturePriority = options.priority;
+  completion(@(YES), nil);
 }
 
 - (void)setFlashModeMode:(nonnull NSString *)mode error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {

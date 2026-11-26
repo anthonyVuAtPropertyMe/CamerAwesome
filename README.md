@@ -347,6 +347,34 @@ onMediaCaptureEvent: (event) {
 
 ---
 
+## 📸 Photo capture options
+
+`SaveConfig.photo` takes `PhotoCaptureOptions` to trade capture speed against
+image processing. Every field is optional and a field left null keeps the
+platform's default.
+
+```dart
+CameraAwesomeBuilder.awesome(
+  saveConfig: SaveConfig.photo(
+    photoCaptureOptions: PhotoCaptureOptions(
+      priority: CapturePriority.speed,
+      // Android only
+      quality: 95,
+      maxPhotoSize: Size(1920, 1440),
+    ),
+  ),
+  // ...
+)
+```
+
+| Option         | iOS                                                   | Android                                                                                                                                  |
+| -------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`     | `AVCapturePhotoQualityPrioritization`                 | `quality` is `CAPTURE_MODE_MAXIMIZE_QUALITY` (autofocus and metering before the shot, slower), `speed` and `balanced` are `CAPTURE_MODE_MINIMIZE_LATENCY` |
+| `quality`      | ignored                                               | JPEG quality, 1 to 100                                                                                                                   |
+| `maxPhotoSize` | ignored (the 4:3 photo format has a single size)      | the size to ask CameraX for, in landscape. CameraX takes the closest size at or above it, so it is not a hard maximum                    |
+
+---
+
 ## 🔬 Analysis mode
 
 Use this to achieve:
