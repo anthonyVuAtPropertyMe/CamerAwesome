@@ -1,0 +1,23 @@
+CHANGELOG.md
+  s_44f6d52475bb5e::t_69620d2f8f12f6 5
+ios/camerawesome/Sources/camerawesome/Controllers/Exif/ExifContainer.m
+  s_44f6d52475bb5e::t_d50806c5367b0f 90
+ios/camerawesome/Sources/camerawesome/include/ExifContainer.h
+  s_44f6d52475bb5e::t_70efeb58664e6d 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "42aa5e00a8c5c236a3b32bce685fa4d23a6b903b",
+  "prompts": {},
+  "sessions": {
+    "s_44f6d52475bb5e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9265ad2a-8d7f-43bb-9369-79346bbe3102",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Anthony Vu <anthonyvu@propertyme.com>"
+    }
+  }
+}
