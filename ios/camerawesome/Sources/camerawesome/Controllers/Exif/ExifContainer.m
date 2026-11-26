@@ -87,7 +87,7 @@ NSString const * kCGImagePropertyProjection = @"ProjectionType";
   [self setValue:projection forExifKey:kCGImagePropertyProjection];
 }
 
-- (void)setValue:(NSString *)key forExifKey:(NSString *)value {
+- (void)setValue:(NSString *)value forExifKey:(NSString *)key {
   [self.exifDictionary setObject:value forKey:key];
 }
 
