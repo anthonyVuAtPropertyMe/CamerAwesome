@@ -10,6 +10,19 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+/// How a photo capture trades speed against image processing. Maps to
+/// `AVCapturePhotoQualityPrioritization` on iOS and to the CameraX capture
+/// mode on Android ([quality] is `CAPTURE_MODE_MAXIMIZE_QUALITY`, the others
+/// are `CAPTURE_MODE_MINIMIZE_LATENCY`).
+typedef NS_ENUM(NSUInteger, PigeonCapturePriority) {
+  /// No priority requested: keep the platform's default. Spelled out because
+  /// Pigeon 9.2.5 decodes a null enum field as the first value on iOS.
+  PigeonCapturePriorityPlatformDefault = 0,
+  PigeonCapturePrioritySpeed = 1,
+  PigeonCapturePriorityBalanced = 2,
+  PigeonCapturePriorityQuality = 3,
+};
+
 typedef NS_ENUM(NSUInteger, PigeonSensorPosition) {
   PigeonSensorPositionBack = 0,
   PigeonSensorPositionFront = 1,
@@ -99,6 +112,7 @@ typedef NS_ENUM(NSUInteger, AnalysisRotation) {
 
 @class PreviewSize;
 @class ExifPreferences;
+@class PigeonPhotoCaptureOptions;
 @class PigeonSensor;
 @class VideoOptions;
 @class AndroidVideoOptions;
@@ -123,6 +137,20 @@ typedef NS_ENUM(NSUInteger, AnalysisRotation) {
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)makeWithSaveGPSLocation:(NSNumber *)saveGPSLocation;
 @property(nonatomic, strong) NSNumber * saveGPSLocation;
+@end
+
+/// Photo capture options. Null fields keep the platform's default.
+@interface PigeonPhotoCaptureOptions : NSObject
+/// `init` unavailable to enforce nonnull fields, see the `make` class method.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)makeWithPriority:(PigeonCapturePriority)priority
+    quality:(nullable NSNumber *)quality
+    maxPhotoSize:(nullable PreviewSize *)maxPhotoSize;
+@property(nonatomic, assign) PigeonCapturePriority priority;
+/// Android only: JPEG quality, 1 to 100.
+@property(nonatomic, strong, nullable) NSNumber * quality;
+/// Android only: the photo size to ask CameraX for.
+@property(nonatomic, strong, nullable) PreviewSize * maxPhotoSize;
 @end
 
 @interface PigeonSensor : NSObject
@@ -313,6 +341,7 @@ NSObject<FlutterMessageCodec> *CameraInterfaceGetCodec(void);
 - (nullable PreviewSize *)getEffectivPreviewSizeIndex:(NSNumber *)index error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setPhotoSizeSize:(PreviewSize *)size error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setPreviewSizeSize:(PreviewSize *)size error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setPhotoCaptureOptionsOptions:(PigeonPhotoCaptureOptions *)options completion:(void (^)(NSNumber *_Nullable, FlutterError *_Nullable))completion;
 - (void)setAspectRatioAspectRatio:(NSString *)aspectRatio error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setupImageAnalysisStreamFormat:(NSString *)format width:(NSNumber *)width maxFramesPerSecond:(nullable NSNumber *)maxFramesPerSecond autoStart:(NSNumber *)autoStart error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setExifPreferencesExifPreferences:(ExifPreferences *)exifPreferences completion:(void (^)(NSNumber *_Nullable, FlutterError *_Nullable))completion;

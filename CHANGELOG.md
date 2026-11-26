@@ -1,5 +1,8 @@
 # Unreleased
 - iOS: new `SaveConfig.photo(usePhotoSessionPreset: true)` option, off by default. It uses `AVCaptureSessionPresetPhoto`, so a 4:3 photo is captured at the photo format's own size instead of being cropped from a 16:9 frame. Ignored on Android and Web and when image analysis is enabled.
+- New `SaveConfig.photo(photoCaptureOptions: PhotoCaptureOptions(...))`, off by default, with a `CapturePriority` (`speed`, `balanced`, `quality`), a JPEG `quality` and a `maxPhotoSize`. iOS: the priority sets `AVCapturePhotoQualityPrioritization`. Android: `quality` priority selects CameraX `CAPTURE_MODE_MAXIMIZE_QUALITY`, the others `CAPTURE_MODE_MINIMIZE_LATENCY`; `quality` sets the JPEG quality and `maxPhotoSize` asks CameraX for the closest size at or above it, which makes the photo size configurable again (the commented-out `setTargetResolution` never applied). Quality and size are ignored on iOS.
+- New Pigeon method `CameraInterface.setPhotoCaptureOptions`. The native side keeps the options and applies them to the camera that `setupCamera` creates, so `CamerawesomePlugin.setPhotoCaptureOptions` can be called before `init` without a second camera start.
+- Fix iOS: photos the plugin re-encodes (the crop path) had no EXIF `DateTimeOriginal`. `ExifContainer setValue:forExifKey:` had its parameter names swapped, so `addCreationDate:` stored the date as a key and the tag name as its value, and ImageIO dropped it. The same swap affected `addUserComment:` and `addProjection:`, which nothing calls.
 
 # 2.5.0
 - Fix iOS camera zoom change crash (thanks @haf and @chaosue) 

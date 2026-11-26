@@ -194,6 +194,11 @@ class PreparingCameraState extends CameraState {
       enableImageStream: enableImageStream,
       enablePhysicalButton: enablePhysicalButton,
     );
+    // Sent on every init, defaults included, because the native side keeps the
+    // options and a previous session's must not carry over.
+    await CamerawesomePlugin.setPhotoCaptureOptions(
+      saveConfig?.photoCaptureOptions ?? const PhotoCaptureOptions(),
+    );
     await CamerawesomePlugin.init(
       sensorConfig,
       enableImageStream,
