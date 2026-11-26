@@ -1,3 +1,6 @@
+# Unreleased
+- Fix iOS: photos the plugin re-encodes (the crop path) had no EXIF `DateTimeOriginal`. `ExifContainer setValue:forExifKey:` had its parameter names swapped, so `addCreationDate:` stored the date as a key and the tag name as its value, and ImageIO dropped it. The same swap affected `addUserComment:` and `addProjection:`, which nothing calls.
+
 # 2.5.0
 - Fix iOS camera zoom change crash (thanks @haf and @chaosue) 
 - Fix camera preview not accurate with the result photo
