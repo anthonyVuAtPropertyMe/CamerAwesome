@@ -293,13 +293,15 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     name:(NSString *)name
     iso:(NSNumber *)iso
     flashAvailable:(NSNumber *)flashAvailable
-    uid:(NSString *)uid {
+    uid:(NSString *)uid
+    intrinsicZoomRatio:(nullable NSNumber *)intrinsicZoomRatio {
   PigeonSensorTypeDevice* pigeonResult = [[PigeonSensorTypeDevice alloc] init];
   pigeonResult.sensorType = sensorType;
   pigeonResult.name = name;
   pigeonResult.iso = iso;
   pigeonResult.flashAvailable = flashAvailable;
   pigeonResult.uid = uid;
+  pigeonResult.intrinsicZoomRatio = intrinsicZoomRatio;
   return pigeonResult;
 }
 + (PigeonSensorTypeDevice *)fromList:(NSArray *)list {
@@ -313,6 +315,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
   NSAssert(pigeonResult.flashAvailable != nil, @"");
   pigeonResult.uid = GetNullableObjectAtIndex(list, 4);
   NSAssert(pigeonResult.uid != nil, @"");
+  pigeonResult.intrinsicZoomRatio = GetNullableObjectAtIndex(list, 5);
   return pigeonResult;
 }
 + (nullable PigeonSensorTypeDevice *)nullableFromList:(NSArray *)list {
@@ -325,6 +328,7 @@ static id GetNullableObjectAtIndex(NSArray *array, NSInteger key) {
     (self.iso ?: [NSNull null]),
     (self.flashAvailable ?: [NSNull null]),
     (self.uid ?: [NSNull null]),
+    (self.intrinsicZoomRatio ?: [NSNull null]),
   ];
 }
 @end
