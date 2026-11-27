@@ -424,7 +424,13 @@ data class PigeonSensorTypeDevice (
   /** A Boolean value that indicates whether the flash is currently available for use. */
   val flashAvailable: Boolean,
   /** An identifier that uniquely identifies the device. */
-  val uid: String
+  val uid: String,
+  /**
+   * The zoom ratio of this camera's own field of view relative to the default
+   * back camera (about 0.6 for an ultra-wide, 1.0 for the wide, 3.0 for a 3x
+   * telephoto). Android only, null on iOS.
+   */
+  val intrinsicZoomRatio: Double? = null
 
 ) {
   companion object {
@@ -435,7 +441,8 @@ data class PigeonSensorTypeDevice (
       val iso = list[2] as Double
       val flashAvailable = list[3] as Boolean
       val uid = list[4] as String
-      return PigeonSensorTypeDevice(sensorType, name, iso, flashAvailable, uid)
+      val intrinsicZoomRatio = list[5] as Double?
+      return PigeonSensorTypeDevice(sensorType, name, iso, flashAvailable, uid, intrinsicZoomRatio)
     }
   }
   fun toList(): List<Any?> {
@@ -445,6 +452,7 @@ data class PigeonSensorTypeDevice (
       iso,
       flashAvailable,
       uid,
+      intrinsicZoomRatio,
     )
   }
 }
