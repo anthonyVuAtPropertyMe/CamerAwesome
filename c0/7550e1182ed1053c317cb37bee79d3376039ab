@@ -1,0 +1,43 @@
+test/android_back_sensors_test.dart
+  s_81796054f8d263::t_2c288620007a22 1-144
+lib/src/orchestrator/models/sensor_type.dart
+  s_81796054f8d263::t_3a458d5bdd74df 30-31,38-39,42-48,55
+pigeons/interface.dart
+  s_81796054f8d263::t_7529861560ae1e 169-173,180
+ios/camerawesome/Sources/camerawesome/Controllers/Sensors/SensorsController.m
+  s_81796054f8d263::t_78829ff77457c0 37
+CHANGELOG.md
+  s_81796054f8d263::t_307679e1a49d8a 1-4
+README.md
+  s_81796054f8d263::t_dacd6437fb63e0 93,434-456
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/CameraAwesomeX.kt
+  s_81796054f8d263::t_8eccb047350af9 550,554-562,617-620,622-628
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/CameraXState.kt
+  s_81796054f8d263::t_bed4d34445da07 196,273-327,384-386
+android/src/main/kotlin/com/apparence/camerawesome/cameraX/Pigeon.kt
+  s_81796054f8d263::t_d7ff5d328a1360 371-377,388-389,399
+ios/camerawesome/Sources/camerawesome/Pigeon/Pigeon.m
+  s_81796054f8d263::t_a0fafeaf685e8e 261-262,269,283,296
+ios/camerawesome/Sources/camerawesome/include/Pigeon.h
+  s_81796054f8d263::t_bb475ddb8c3993 183-184,194-197
+lib/camerawesome_plugin.dart
+  s_81796054f8d263::t_41f40b4ab6508e 407-411,413-435,437-441,443-457
+lib/pigeon.dart
+  s_81796054f8d263::t_8ec248708a17d3 307,324-328,336,348
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c07550e1182ed1053c317cb37bee79d3376039ab",
+  "prompts": {},
+  "sessions": {
+    "s_81796054f8d263": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "101019b4-926b-4d41-b617-c5bb0e57a426",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Anthony Vu <anthonyvu@propertyme.com>"
+    }
+  }
+}
