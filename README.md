@@ -90,7 +90,7 @@ Here's all native features that cameraAwesome provides to the flutter side.
 | 📲 Live switching camera                 |   ✅    | ✅  |
 | 😵‍💫 Camera rotation stream              |   ✅    | ✅  |
 | 🤐 Background auto stop                  |   ✅    | ✅  |
-| 🔀 Sensor type switching                 |   ⛔️    | ✅  |
+| 🔀 Sensor type switching                 |   ✅    | ✅  |
 | 🪞 Enable/disable front camera mirroring |   ✅    | ✅  |
 
 ---
@@ -428,6 +428,29 @@ Through state you can access to a `SensorConfig` class.
 
 All of these configurations are listenable through a stream so your UI can
 automatically get updated according to the actual configuration.
+
+<br>
+
+### Switching lenses
+
+`state.getSensors()` lists the back and front cameras. Pass the `uid` of the
+one you want to `state.setSensorType`:
+
+```dart
+final sensors = await state.getSensors();
+final ultraWide = sensors.ultraWideAngle;
+if (ultraWide != null) {
+  state.setSensorType(0, SensorType.ultraWideAngle, ultraWide.uid);
+}
+```
+
+On Android, a camera is listed for each camera ID CameraX exposes. The `uid` is
+the Camera2 camera id and `intrinsicZoomRatio` is the camera's zoom ratio
+relative to the default back camera (for example 0.6 for an ultra-wide). A phone
+that exposes its ultra-wide or telephoto only inside one logical camera lists
+that camera alone, and its lenses are reached through the zoom range instead.
+Switching lenses keeps the flash mode and the aspect ratio, but zoom starts over
+on the new camera, so set it again after the switch.
 
 <br>
 

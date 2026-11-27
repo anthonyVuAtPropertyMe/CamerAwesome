@@ -180,7 +180,8 @@ typedef NS_ENUM(NSUInteger, AnalysisRotation) {
     name:(NSString *)name
     iso:(NSNumber *)iso
     flashAvailable:(NSNumber *)flashAvailable
-    uid:(NSString *)uid;
+    uid:(NSString *)uid
+    intrinsicZoomRatio:(nullable NSNumber *)intrinsicZoomRatio;
 @property(nonatomic, assign) PigeonSensorType sensorType;
 /// A localized device name for display in the user interface.
 @property(nonatomic, copy) NSString * name;
@@ -190,6 +191,10 @@ typedef NS_ENUM(NSUInteger, AnalysisRotation) {
 @property(nonatomic, strong) NSNumber * flashAvailable;
 /// An identifier that uniquely identifies the device.
 @property(nonatomic, copy) NSString * uid;
+/// The zoom ratio of this camera's own field of view relative to the default
+/// back camera (about 0.6 for an ultra-wide, 1.0 for the wide, 3.0 for a 3x
+/// telephoto). Android only, null on iOS.
+@property(nonatomic, strong, nullable) NSNumber * intrinsicZoomRatio;
 @end
 
 @interface AndroidFocusSettings : NSObject

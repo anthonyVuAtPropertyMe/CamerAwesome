@@ -547,11 +547,19 @@ class CameraAwesomeX : CameraInterface, FlutterPlugin, ActivityAware {
     }
 
     override fun getFrontSensors(): List<PigeonSensorTypeDevice> {
-        TODO("Not yet implemented")
+        return sensorTypeDevices(front = true)
     }
 
     override fun getBackSensors(): List<PigeonSensorTypeDevice> {
-        TODO("Not yet implemented")
+        return sensorTypeDevices(front = false)
+    }
+
+    private fun sensorTypeDevices(front: Boolean): List<PigeonSensorTypeDevice> {
+        // The cameras are listed from the camera provider, which setupCamera creates the state with.
+        if (!::cameraState.isInitialized) {
+            return emptyList()
+        }
+        return cameraState.sensorTypeDevices(front)
     }
 
     override fun pauseVideoRecording() {
@@ -606,12 +614,18 @@ class CameraAwesomeX : CameraInterface, FlutterPlugin, ActivityAware {
     @SuppressLint("RestrictedApi")
     override fun setSensor(sensors: List<PigeonSensor>) {
         cameraState.apply {
+            // Switching between the lenses of one side keeps the flash mode and the aspect ratio.
+            // Only a flip between the front and back cameras, or a multi camera setup, resets them.
+            val isLensSwitch = this.sensors.size == 1 && sensors.size == 1 &&
+                this.sensors.first().position == sensors.first().position
             this.sensors = sensors
-            // TODO Make below variables parameters
-            // Also reset flash mode and aspect ratio
-            this.flashMode = FlashMode.NONE
-            this.aspectRatio = null
-            this.rational = Rational(3, 4)
+            if (!isLensSwitch) {
+                // TODO Make below variables parameters
+                // Also reset flash mode and aspect ratio
+                this.flashMode = FlashMode.NONE
+                this.aspectRatio = null
+                this.rational = Rational(3, 4)
+            }
             updateLifecycle(activity!!)
         }
     }

@@ -193,8 +193,7 @@ data class CameraXState(
         } else {
             val useCaseGroupBuilder = UseCaseGroup.Builder()
             // Handle single camera
-            val cameraSelector =
-                if (sensors.first().position == PigeonSensorPosition.FRONT) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector = selectorFor(sensors.first())
             // Preview
             if (currentCaptureMode != CaptureModes.ANALYSIS_ONLY) {
                 previews!!.add(
@@ -271,6 +270,61 @@ data class CameraXState(
         }
     }
 
+    /**
+     * The camera [sensor] asks for: the one whose Camera2 id is its deviceId when that camera exists
+     * on the sensor's side, otherwise the camera of that side closest to a 1.0 intrinsic zoom ratio
+     * (the wide camera, which CameraX's default selector does not always return).
+     */
+    @SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
+    private fun selectorFor(sensor: PigeonSensor): CameraSelector {
+        val front = sensor.position == PigeonSensorPosition.FRONT
+        val facing = if (front) CameraSelector.LENS_FACING_FRONT else CameraSelector.LENS_FACING_BACK
+        val cameras = cameraProvider.availableCameraInfos.filter { it.lensFacing == facing }
+        val camera = cameras.firstOrNull { Camera2CameraInfo.from(it).cameraId == sensor.deviceId }
+            ?: cameras.minByOrNull { Math.abs(it.intrinsicZoomRatio - 1f) }
+            ?: return if (front) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
+        val id = Camera2CameraInfo.from(camera).cameraId
+        return CameraSelector.Builder()
+            .requireLensFacing(facing)
+            .addCameraFilter { infos -> infos.filter { Camera2CameraInfo.from(it).cameraId == id } }
+            .build()
+    }
+
+    /**
+     * The cameras of one side as sensors, for getSensors. The uid is the Camera2 id and the type
+     * follows the intrinsic zoom ratio: the lowest ratio below 0.9 is the ultra-wide, the ratio
+     * closest to 1.0 the wide, the lowest ratio above 1.1 the telephoto. The front side lists only
+     * its wide camera.
+     */
+    @SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
+    fun sensorTypeDevices(front: Boolean): List<PigeonSensorTypeDevice> {
+        val facing = if (front) CameraSelector.LENS_FACING_FRONT else CameraSelector.LENS_FACING_BACK
+        val cameras = cameraProvider.availableCameraInfos.filter { it.lensFacing == facing }
+        fun device(info: CameraInfo, type: PigeonSensorType): PigeonSensorTypeDevice {
+            val id = Camera2CameraInfo.from(info).cameraId
+            return PigeonSensorTypeDevice(
+                sensorType = type,
+                name = "camera $id",
+                // Android has no exposure ISO to report here.
+                iso = 0.0,
+                flashAvailable = info.hasFlashUnit(),
+                uid = id,
+                intrinsicZoomRatio = info.intrinsicZoomRatio.toDouble(),
+            )
+        }
+        val wide = cameras.minByOrNull { Math.abs(it.intrinsicZoomRatio - 1f) } ?: return emptyList()
+        if (front) {
+            return listOf(device(wide, PigeonSensorType.WIDEANGLE))
+        }
+        val ultraWide = cameras.filter { it.intrinsicZoomRatio < 0.9f }.minByOrNull { it.intrinsicZoomRatio }
+        val telephoto = cameras.filter { it.intrinsicZoomRatio > 1.1f }.minByOrNull { it.intrinsicZoomRatio }
+        return listOfNotNull(
+            ultraWide?.let { device(it, PigeonSensorType.ULTRAWIDEANGLE) },
+            device(wide, PigeonSensorType.WIDEANGLE),
+            telephoto?.let { device(it, PigeonSensorType.TELEPHOTO) },
+        )
+    }
+
     private fun getResolutionSelector(aspectRatio: Int): ResolutionSelector {
         val resolutionStrategy = when (aspectRatio) {
             AspectRatio.RATIO_16_9 -> ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY
@@ -327,7 +381,9 @@ data class CameraXState(
         return Preview.SurfaceProvider { request: SurfaceRequest ->
             val resolution = request.resolution
             //Log.d("CameraX", "surfaceProvider -> Preview size: width=${resolution.width}, height=${resolution.height}")
-            val texture = textureEntries[cameraId]!!.surfaceTexture()
+            // A single camera session has one texture, created at setup under the sensor's deviceId
+            // (or its index). Switching to a camera with another deviceId keeps drawing into it.
+            val texture = (textureEntries[cameraId] ?: textureEntries.values.first()).surfaceTexture()
             texture.setDefaultBufferSize(resolution.width, resolution.height)
             val surface = Surface(texture)
             request.provideSurface(surface, executor) {

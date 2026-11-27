@@ -1,3 +1,7 @@
+# Unreleased
+- Android: `CamerawesomePlugin.getSensors()` lists the cameras CameraX exposes (`getBackSensors` and `getFrontSensors` were `TODO`). `SensorTypeDevice.uid` is the Camera2 camera id and the new `SensorTypeDevice.intrinsicZoomRatio` (also on `PigeonSensorTypeDevice`, null on iOS) tells the ultra-wide (lowest ratio below 0.9), wide (closest to 1.0) and telephoto (lowest above 1.1) cameras apart. The front side lists its wide camera only.
+- Android: a sensor's `deviceId` selects that camera, so `state.setSensorType(0, type, uid)` switches lenses on phones that expose the ultra-wide or telephoto as a separate camera. Without a `deviceId` the back camera closest to a 1.0 ratio opens instead of CameraX's default back camera. Switching lenses on one side keeps the flash mode and the aspect ratio; flipping between front and back still resets them.
+
 # 2.5.0
 - Fix iOS camera zoom change crash (thanks @haf and @chaosue) 
 - Fix camera preview not accurate with the result photo

@@ -166,12 +166,18 @@ class PigeonSensorTypeDevice {
   /// An identifier that uniquely identifies the device.
   final String uid;
 
+  /// The zoom ratio of this camera's own field of view relative to the default
+  /// back camera (about 0.6 for an ultra-wide, 1.0 for the wide, 3.0 for a 3x
+  /// telephoto). Android only, null on iOS.
+  final double? intrinsicZoomRatio;
+
   PigeonSensorTypeDevice({
     required this.sensorType,
     required this.name,
     required this.iso,
     required this.flashAvailable,
     required this.uid,
+    this.intrinsicZoomRatio,
   });
 }
 
